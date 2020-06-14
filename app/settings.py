@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     ENV: Environment = Environment.DEVELOPMENT
     SENTRY_DSN: str = None
     API_KEY: str = "you-will-want-something-safe-here"
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost/user-manager"
     BROKER_URL: str = "amqp://rabbitmq:rabbitmq@localhost"
 
     class Config:

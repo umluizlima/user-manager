@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  database:
+    image: postgres:12.2-alpine
+    container_name: "user-manager-database"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "user-manager"
+    volumes:
+      - database-postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  database-postgres:
