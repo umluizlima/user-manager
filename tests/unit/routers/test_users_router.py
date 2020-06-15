@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from unittest.mock import MagicMock
 
 from pytest import fixture
