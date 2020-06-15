@@ -12,7 +12,7 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
-    ...
+    email: EmailStr = None
 
 
 class UserRead(UserBase):

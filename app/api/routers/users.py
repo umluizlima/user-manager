@@ -41,7 +41,7 @@ def update(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
 
 
-@router.delete("/users/{users_id}", status_code=HTTP_204_NO_CONTENT)
+@router.delete("/users/{user_id}", status_code=HTTP_204_NO_CONTENT)
 def delete(user_id: int, db: Session = Depends(get_db)):
     try:
         return UsersRepository(db).delete_by_id(user_id)
