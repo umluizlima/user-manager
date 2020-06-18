@@ -9,14 +9,14 @@ class JWTService:
     def __init__(self, settings: Settings = settings):
         self.settings = settings
 
-    def generate_token(self, payload: Dict):
+    def generate_token(self, payload: Dict) -> str:
         return encode(
             payload=payload,
             key=self.settings.JWT_SECRET_KEY,
             algorithm=self.settings.JWT_ALGORITHM,
-        )
+        ).decode(encoding="utf-8")
 
-    def verify_token(self, token: str):
+    def verify_token(self, token: str) -> Dict:
         return decode(
             jwt=token,
             key=self.settings.JWT_SECRET_KEY,
