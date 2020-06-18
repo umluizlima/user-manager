@@ -116,7 +116,6 @@ def delete_response(client):
 
 
 def test_delete_user_endpoint_should_accept_delete(delete_response):
-    print(delete_response.status_code)
     assert delete_response.status_code != HTTP_405_METHOD_NOT_ALLOWED
 
 
