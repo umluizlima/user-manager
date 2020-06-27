@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import lru_cache
 from typing import Optional
 
 from pydantic import BaseSettings, EmailStr
@@ -22,4 +23,6 @@ class Settings(BaseSettings):
         fields = {"BROKER_URL": {"env": ["BROKER_URL", "CLOUDAMQP_URL"]}}
 
 
-settings = Settings()
+@lru_cache
+def get_settings():
+    return Settings()

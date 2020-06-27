@@ -11,18 +11,9 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from app.api import api
-from app.core.database import get_db
 from app.core.models import User
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
-
-
-def mock_get_db():
-    return MagicMock()
-
-
-api.dependency_overrides[get_db] = mock_get_db
 
 now = datetime.now()
 user_dict_1 = {
