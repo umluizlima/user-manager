@@ -25,4 +25,4 @@ test:
 
 .PHONY: run
 run: db_run_migrations
-	uvicorn --reload app.api:api
+	uvicorn --reload app.run:api

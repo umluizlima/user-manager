@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 
-from ..settings import settings
+from ..settings import Settings
 from . import extensions, routers
 
-api = FastAPI(title="user-manager")
 
-extensions.configure(api, settings)
-routers.configure(api, settings)
+def create_api(settings: Settings):
+    api = FastAPI(title="user-manager")
+
+    extensions.configure(api, settings)
+    routers.configure(api, settings)
+
+    return api
