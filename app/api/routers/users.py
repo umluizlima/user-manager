@@ -10,7 +10,7 @@ from starlette.status import (
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
-from ..dependencies import users_repository
+from ..dependencies import token_checker, users_repository
 
 router = APIRouter()
 
@@ -49,3 +49,9 @@ def delete(user_id: int, users: UsersRepository = Depends(users_repository)):
         return users.delete_by_id(user_id)
     except Exception:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
+
+
+def configure(app, settings):
+    app.include_router(
+        router, tags=["users"], prefix="/api/v1", dependencies=[Depends(token_checker)],
+    )
