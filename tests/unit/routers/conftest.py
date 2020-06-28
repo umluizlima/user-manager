@@ -4,22 +4,25 @@ from pytest import fixture
 from starlette.testclient import TestClient
 
 from app.api import create_api
-from app.api.security import token_checker
-from app.core.database import get_db
+from app.api.dependencies import token_checker, users_repository
+
+mock = MagicMock()
 
 
-def mock_get_db():
-    return MagicMock()
+def get_mock():
+    mock.reset_mock()
+    return mock
 
 
-def mock_token_checker():
-    return MagicMock()
+@fixture
+def mock_repository():
+    return get_mock()
 
 
 @fixture
 def client(settings):
     api = create_api(settings)
-    api.dependency_overrides[get_db] = mock_get_db
-    api.dependency_overrides[token_checker] = mock_token_checker
+    api.dependency_overrides[users_repository] = get_mock
+    api.dependency_overrides[token_checker] = get_mock
     client = TestClient(api)
     return client

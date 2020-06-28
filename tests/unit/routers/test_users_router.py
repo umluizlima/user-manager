@@ -1,5 +1,4 @@
 from datetime import datetime
-from unittest.mock import MagicMock
 
 from pytest import fixture
 from starlette.status import (
@@ -12,7 +11,6 @@ from starlette.status import (
 )
 
 from app.core.models import User
-from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
 now = datetime.now()
@@ -26,11 +24,11 @@ user_dict_2 = {
 user_2 = User(id=2, created_at=now, **user_dict_2)
 
 
-@fixture(scope="function")
-def list_response(client):
-    UsersRepository.find_all = MagicMock(return_value=[user_1, user_2])
+@fixture
+def list_response(client, mock_repository):
+    mock_repository.find_all.return_value = [user_1, user_2]
     yield client.get("/api/v1/users")
-    UsersRepository.find_all.assert_called_once()
+    mock_repository.find_all.assert_called_once()
 
 
 def test_list_should_return_status_200(list_response):
@@ -57,11 +55,11 @@ def test_listed_user_should_have_created_at(list_response):
     assert "created_at" in list_response.json().pop()
 
 
-@fixture(scope="function")
-def read_response(client):
-    UsersRepository.find_by_id = MagicMock(return_value=user_1)
+@fixture
+def read_response(client, mock_repository):
+    mock_repository.find_by_id.return_value = user_1
     yield client.get(f"/api/v1/users/{user_1.id}")
-    UsersRepository.find_by_id.assert_called_once_with(user_1.id)
+    mock_repository.find_by_id.assert_called_once_with(user_1.id)
 
 
 def test_read_endpoint_should_accept_get(read_response):
@@ -77,18 +75,18 @@ def test_read_user_should_return_user_if_found(read_response):
     assert response_user.id == user_1.id
 
 
-def test_read_should_return_status_404_if_user_not_found(client):
-    UsersRepository.find_by_id = MagicMock(side_effect=Exception)
+def test_read_should_return_status_404_if_user_not_found(client, mock_repository):
+    mock_repository.find_by_id.side_effect = Exception
     response = client.get(f"/api/v1/users/{user_1.id}")
     assert response.status_code == HTTP_404_NOT_FOUND
-    UsersRepository.find_by_id.assert_called_once_with(user_1.id)
+    mock_repository.find_by_id.assert_called_once_with(user_1.id)
 
 
-@fixture(scope="function")
-def create_response(client):
-    UsersRepository.create = MagicMock(return_value=user_1)
+@fixture
+def create_response(client, mock_repository):
+    mock_repository.create.return_value = user_1
     yield client.post("/api/v1/users", json=user_dict_1)
-    UsersRepository.create.assert_called_once_with(UserCreate(**user_dict_1).dict())
+    mock_repository.create.assert_called_once_with(UserCreate(**user_dict_1).dict())
 
 
 def test_create_user_endpoint_should_accept_post(create_response):
@@ -108,11 +106,11 @@ def test_created_user_should_return_status_201(create_response):
     assert create_response.status_code == HTTP_201_CREATED
 
 
-@fixture(scope="function")
-def delete_response(client):
-    UsersRepository.delete_by_id = MagicMock()
+@fixture
+def delete_response(client, mock_repository):
+    mock_repository.delete_by_id.reset_mock()
     yield client.delete(f"/api/v1/users/{user_1.id}")
-    UsersRepository.delete_by_id.assert_called_once_with(user_1.id)
+    mock_repository.delete_by_id.assert_called_once_with(user_1.id)
 
 
 def test_delete_user_endpoint_should_accept_delete(delete_response):
@@ -123,18 +121,21 @@ def test_delete_user_should_return_status_204(delete_response):
     assert delete_response.status_code == HTTP_204_NO_CONTENT
 
 
-def test_delete_user_should_return_status_404_if_user_not_found(client):
-    UsersRepository.delete_by_id = MagicMock(side_effect=Exception)
+def test_delete_user_should_return_status_404_if_user_not_found(
+    client, mock_repository
+):
+    mock_repository.delete_by_id.side_effect = Exception
     response = client.delete(f"/api/v1/users/{user_1.id}")
     assert response.status_code == HTTP_404_NOT_FOUND
-    UsersRepository.delete_by_id.assert_called_once_with(user_1.id)
+    mock_repository.delete_by_id.assert_called_once_with(user_1.id)
 
 
-@fixture(scope="function")
-def update_response(client):
-    UsersRepository.update_by_id = MagicMock(return_value=user_1)
+@fixture
+def update_response(client, mock_repository):
+    mock_repository.reset_mock()
+    mock_repository.update_by_id.return_value = user_1
     yield client.put(f"/api/v1/users/{user_1.id}", json=user_dict_1)
-    UsersRepository.update_by_id.assert_called_once_with(
+    mock_repository.update_by_id.assert_called_once_with(
         user_1.id, UserUpdate(**user_dict_1).dict()
     )
 
@@ -143,13 +144,12 @@ def test_update_user_endpoint_should_accept_put(update_response):
     assert update_response.status_code != HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_update_user_should_return_status_404_if_user_not_found(client):
-    UsersRepository.update_by_id = MagicMock(side_effect=Exception)
-    response = client.put(f"/api/v1/users/{user_1.id}", json=user_dict_1)
-    assert response.status_code == HTTP_404_NOT_FOUND
-    UsersRepository.update_by_id.assert_called_once_with(
-        user_1.id, UserUpdate(**user_dict_1).dict()
-    )
+def test_update_user_should_return_updated_user(update_response):
+    assert update_response.json()["email"] == user_dict_1["email"]
+
+
+def test_update_user_should_return_status_200_if_successful(update_response):
+    assert update_response.status_code == HTTP_200_OK
 
 
 def test_update_user_should_not_have_required_fields(client):
@@ -157,18 +157,21 @@ def test_update_user_should_not_have_required_fields(client):
     assert response.status_code != HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_update_user_should_return_updated_user(update_response):
-    assert update_response.json()["email"] == user_dict_1["email"]
-
-
-def test_update_user_should_ignore_unknown_fields(client):
-    update_data = {"key": "value", **user_dict_1}
-    UsersRepository.update_by_id = MagicMock(return_value=user_1)
-    client.put(f"/api/v1/users/{user_1.id}", json=update_data)
-    UsersRepository.update_by_id.assert_called_once_with(
+def test_update_user_should_return_status_404_if_user_not_found(
+    client, mock_repository
+):
+    mock_repository.update_by_id.side_effect = Exception
+    response = client.put(f"/api/v1/users/{user_1.id}", json=user_dict_1)
+    assert response.status_code == HTTP_404_NOT_FOUND
+    mock_repository.update_by_id.assert_called_once_with(
         user_1.id, UserUpdate(**user_dict_1).dict()
     )
 
 
-def test_update_user_should_return_status_200_if_successful(update_response):
-    assert update_response.status_code == HTTP_200_OK
+def test_update_user_should_ignore_unknown_fields(client, mock_repository):
+    update_data = {"key": "value", **user_dict_1}
+    mock_repository.update_by_id.return_value = user_1
+    client.put(f"/api/v1/users/{user_1.id}", json=update_data)
+    mock_repository.update_by_id.assert_called_once_with(
+        user_1.id, UserUpdate(**user_dict_1).dict()
+    )
