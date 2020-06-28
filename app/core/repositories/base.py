@@ -31,7 +31,6 @@ class BaseRepository(ABC):
     def delete_by_id(self, id: int):
         if not self._filter_by_id(id).delete():
             raise NoResultFound()
-        self.db.commit()
 
     def create(self, data: Dict) -> BaseModel:
         return self.save(self.__model__(**data))
@@ -39,7 +38,6 @@ class BaseRepository(ABC):
     def update_by_id(self, id: int, data: Dict):
         if not self._filter_by_id(id).update(data):
             raise NoResultFound()
-        self.db.commit()
         return self.find_by_id(id)
 
     def _filter_by_id(self, id: id):
