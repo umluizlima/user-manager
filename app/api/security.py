@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Depends, Security, HTTPException
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.status import HTTP_403_FORBIDDEN
@@ -18,8 +20,8 @@ def token_checker(
 ):
     try:
         return token_service.verify_token(header.credentials)
-    except Exception as error:
-        raise error
+    except Exception:
+        logging.exception("Token verification raised exception")
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
         )
