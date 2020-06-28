@@ -1,26 +1,31 @@
+from contextlib import contextmanager
 from functools import lru_cache
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from ..settings import get_settings
+from ..settings import Settings
 
 
 @lru_cache
-def get_session_maker():
-    settings = get_settings()
-    engine = create_engine(settings.DATABASE_URL)
+def get_session_maker(database_url: str):
+    engine = create_engine(database_url)
     return sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_db():
-    Session = get_session_maker()
-    try:
-        session = Session()
-        yield session
-        session.commit()
-    except Exception as error:
-        session.rollback()
-        raise error
-    finally:
-        session.close()
+class Database:
+    def __init__(self, settings: Settings):
+        self._Session = get_session_maker(settings.DATABASE_URL)
+
+    @contextmanager
+    def get_session(self, autocommit=True):
+        session = self._Session()
+        try:
+            yield session
+            if autocommit:
+                session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
