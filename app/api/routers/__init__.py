@@ -1,13 +1,6 @@
-from fastapi import Depends
-
-from ..dependencies import token_checker
-from .users import router as users_router
+from . import users
 
 
 def configure(app, settings):
-    app.include_router(
-        users_router,
-        tags=["users"],
-        prefix="/api/v1",
-        dependencies=[Depends(token_checker)],
-    )
+    for router in [users]:
+        router.configure(app, settings)
