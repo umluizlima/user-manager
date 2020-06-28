@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from ..security import token_checker
+from ..dependencies import token_checker
 from .users import router as users_router
 
 

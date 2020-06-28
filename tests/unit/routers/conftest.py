@@ -4,7 +4,7 @@ from pytest import fixture
 from starlette.testclient import TestClient
 
 from app.api import create_api
-from app.api.security import token_checker
+from app.api.dependencies import token_checker
 from app.core.database import get_db
 
 
