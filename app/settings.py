@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     API_KEY: str = "you-will-want-something-safe-here"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/user-manager"
     BROKER_URL: str = "amqp://rabbitmq:rabbitmq@localhost"
+    JWT_ALGORITHM: str = "RS256"
+    JWT_PUBLIC_KEY: bytes
+    JWT_PRIVATE_KEY: bytes
 
     class Config:
         env_file = ".env"
