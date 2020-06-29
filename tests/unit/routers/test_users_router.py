@@ -7,9 +7,11 @@ from starlette.status import (
     HTTP_204_NO_CONTENT,
     HTTP_404_NOT_FOUND,
     HTTP_405_METHOD_NOT_ALLOWED,
+    HTTP_409_CONFLICT,
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
+from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from app.core.models import User
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
@@ -76,7 +78,7 @@ def test_read_user_should_return_user_if_found(read_response):
 
 
 def test_read_should_return_status_404_if_user_not_found(client, mock_repository):
-    mock_repository.find_by_id.side_effect = Exception
+    mock_repository.find_by_id.side_effect = ResourceNotFoundError
     response = client.get(f"/api/v1/users/{user_1.id}")
     assert response.status_code == HTTP_404_NOT_FOUND
     mock_repository.find_by_id.assert_called_once_with(user_1.id)
@@ -106,6 +108,15 @@ def test_created_user_should_return_status_201(create_response):
     assert create_response.status_code == HTTP_201_CREATED
 
 
+def test_create_user_should_return_status_409_on_payload_conflict(
+    client, mock_repository
+):
+    mock_repository.create.side_effect = ResourceAlreadyExistsError
+    response = client.post("/api/v1/users", json=user_dict_1)
+    assert response.status_code == HTTP_409_CONFLICT
+    mock_repository.create.assert_called_once_with(user_dict_1)
+
+
 @fixture
 def delete_response(client, mock_repository):
     mock_repository.delete_by_id.reset_mock()
@@ -124,7 +135,7 @@ def test_delete_user_should_return_status_204(delete_response):
 def test_delete_user_should_return_status_404_if_user_not_found(
     client, mock_repository
 ):
-    mock_repository.delete_by_id.side_effect = Exception
+    mock_repository.delete_by_id.side_effect = ResourceNotFoundError
     response = client.delete(f"/api/v1/users/{user_1.id}")
     assert response.status_code == HTTP_404_NOT_FOUND
     mock_repository.delete_by_id.assert_called_once_with(user_1.id)
@@ -160,9 +171,20 @@ def test_update_user_should_not_have_required_fields(client):
 def test_update_user_should_return_status_404_if_user_not_found(
     client, mock_repository
 ):
-    mock_repository.update_by_id.side_effect = Exception
+    mock_repository.update_by_id.side_effect = ResourceNotFoundError
     response = client.put(f"/api/v1/users/{user_1.id}", json=user_dict_1)
     assert response.status_code == HTTP_404_NOT_FOUND
+    mock_repository.update_by_id.assert_called_once_with(
+        user_1.id, UserUpdate(**user_dict_1).dict()
+    )
+
+
+def test_update_user_should_return_status_409_if_payload_has_conflicts(
+    client, mock_repository
+):
+    mock_repository.update_by_id.side_effect = ResourceAlreadyExistsError
+    response = client.put(f"/api/v1/users/{user_1.id}", json=user_dict_1)
+    assert response.status_code == HTTP_409_CONFLICT
     mock_repository.update_by_id.assert_called_once_with(
         user_1.id, UserUpdate(**user_dict_1).dict()
     )
