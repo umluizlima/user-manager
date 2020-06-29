@@ -3,7 +3,9 @@ from typing import Dict, List
 
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
 
+from ..errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from ..models import BaseModel
 
 
@@ -26,18 +28,27 @@ class BaseRepository(ABC):
         return self.db.query(self.__model__).all()
 
     def find_by_id(self, id: int) -> BaseModel:
-        return self._filter_by_id(id).one()
+        try:
+            return self._filter_by_id(id).one()
+        except NoResultFound:
+            raise ResourceNotFoundError
 
     def delete_by_id(self, id: int):
         if not self._filter_by_id(id).delete():
-            raise NoResultFound()
+            raise ResourceNotFoundError
 
     def create(self, data: Dict) -> BaseModel:
-        return self.save(self.__model__(**data))
+        try:
+            return self.save(self.__model__(**data))
+        except IntegrityError:
+            raise ResourceAlreadyExistsError
 
     def update_by_id(self, id: int, data: Dict):
-        if not self._filter_by_id(id).update(data):
-            raise NoResultFound()
+        try:
+            if not self._filter_by_id(id).update(data):
+                raise ResourceNotFoundError
+        except IntegrityError:
+            raise ResourceAlreadyExistsError
         return self.find_by_id(id)
 
     def _filter_by_id(self, id: id):
