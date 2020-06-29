@@ -2,15 +2,15 @@ from datetime import datetime
 from decimal import Decimal
 
 from pytest import fixture, raises
-from sqlalchemy.orm.exc import NoResultFound
 
+from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from app.core.models import User
 from app.core.repositories import UsersRepository
 
 
-@fixture(scope="function")
-def repository(db):
-    return UsersRepository(db)
+@fixture
+def repository(db_session):
+    return UsersRepository(db_session)
 
 
 new_user = {
@@ -44,6 +44,12 @@ def test_create_users_should_be_persisted(repository):
     assert len(repository.find_all()) == 2
 
 
+def test_create_raises_exception_on_duplicate_entry(repository):
+    repository.create(new_user)
+    with raises(ResourceAlreadyExistsError):
+        repository.create(new_user)
+
+
 def test_find_all_should_return_list(repository):
     assert isinstance(repository.find_all(), list)
 
@@ -61,7 +67,7 @@ def test_find_by_id_should_return_user(repository):
 
 
 def test_find_by_id_should_raise_exception_if_not_found(repository):
-    with raises(NoResultFound):
+    with raises(ResourceNotFoundError):
         repository.find_by_id(123)
 
 
@@ -72,8 +78,15 @@ def test_update_by_id_should_update_user(repository):
 
 
 def test_update_by_id_should_raise_exception_if_not_found(repository):
-    with raises(NoResultFound):
+    with raises(ResourceNotFoundError):
         repository.update_by_id(123, {})
+
+
+def test_update_by_id_should_raise_exception_on_duplicate_entry(repository):
+    user_1 = repository.create(new_user)
+    user_2 = repository.create(new_user_2)
+    with raises(ResourceAlreadyExistsError):
+        repository.update_by_id(user_2.id, {"email": user_1.email})
 
 
 def test_delete_by_id_should_remove_user(repository):
@@ -83,5 +96,5 @@ def test_delete_by_id_should_remove_user(repository):
 
 
 def test_delete_by_id_should_raise_exception_if_not_found(repository):
-    with raises(NoResultFound):
+    with raises(ResourceNotFoundError):
         repository.delete_by_id(123)

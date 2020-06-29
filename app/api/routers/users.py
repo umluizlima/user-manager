@@ -5,8 +5,10 @@ from starlette.status import (
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
     HTTP_404_NOT_FOUND,
+    HTTP_409_CONFLICT,
 )
 
+from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
@@ -17,7 +19,10 @@ router = APIRouter()
 
 @router.post("/users", response_model=UserRead, status_code=HTTP_201_CREATED)
 def create(user: UserCreate, users: UsersRepository = Depends(users_repository)):
-    return users.create(user.dict())
+    try:
+        return users.create(user.dict())
+    except ResourceAlreadyExistsError:
+        raise HTTPException(status_code=HTTP_409_CONFLICT, detail="User already exists")
 
 
 @router.get("/users", response_model=List[UserRead])
@@ -29,7 +34,7 @@ def list(users: UsersRepository = Depends(users_repository)):
 def read(user_id: int, users: UsersRepository = Depends(users_repository)):
     try:
         return users.find_by_id(user_id)
-    except Exception:
+    except ResourceNotFoundError:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
 
 
@@ -39,15 +44,19 @@ def update(
 ):
     try:
         return users.update_by_id(user_id, user.dict(exclude_unset=True))
-    except Exception:
+    except ResourceNotFoundError:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
+    except ResourceAlreadyExistsError:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail="User with data already exists"
+        )
 
 
 @router.delete("/users/{user_id}", status_code=HTTP_204_NO_CONTENT)
 def delete(user_id: int, users: UsersRepository = Depends(users_repository)):
     try:
         return users.delete_by_id(user_id)
-    except Exception:
+    except ResourceNotFoundError:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
 
 
