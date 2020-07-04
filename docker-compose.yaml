@@ -21,6 +21,15 @@ services:
     ports:
       - "6379:6379"
 
+  broker:
+    image: rabbitmq:3.8.3-alpine
+    container_name: "user-manager-broker"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+    ports:
+      - "5672:5672"
+
 volumes:
   database-postgres:
   cache-redis:
