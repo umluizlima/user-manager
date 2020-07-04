@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "RS256"
     JWT_PUBLIC_KEY: bytes
     JWT_PRIVATE_KEY: bytes
+    ACCESS_CODE_LENGTH: int = 6
+    ACCESS_CODE_EXPIRATION_SECONDS: int = 300
 
     class Config:
         env_file = ".env"
