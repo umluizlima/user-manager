@@ -9,5 +9,5 @@ class Task(str, Enum):
     SEND_EMAIL = "SEND_EMAIL"
 
 
-def get_celery_app(name: str, settings: Settings, **kwargs):
-    return Celery(name, broker=settings.BROKER_URL, **kwargs)
+def get_celery_app(name: str, broker_url: str, **kwargs):
+    return Celery(name, broker=broker_url, **kwargs)
