@@ -12,6 +12,15 @@ services:
       - database-postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  
+  cache:
+    image: redis:6.0.5-alpine
+    container_name: "user-manager-cache"
+    volumes:
+      - cache-redis:/data
+    ports:
+      - "6379:6379"
 
 volumes:
   database-postgres:
+  cache-redis:
