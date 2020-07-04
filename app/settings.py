@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     SENTRY_DSN: str = None
     API_KEY: str = "you-will-want-something-safe-here"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/user-manager"
+    CACHE_URL: str = "redis://:@localhost:6379/0"
     BROKER_URL: str = "amqp://rabbitmq:rabbitmq@localhost"
     JWT_ALGORITHM: str = "RS256"
     JWT_PUBLIC_KEY: bytes

@@ -17,6 +17,10 @@ db_run_migrations: db_init
 	PYTHONPATH=. \
 	alembic upgrade head
 
+.PHONY: cache_init
+cache_init:
+	docker-compose up -d cache
+
 .PHONY: test
 test:
 	docker-compose down && \
@@ -24,5 +28,5 @@ test:
 	python -m pytest --cov=app -s
 
 .PHONY: run
-run: db_run_migrations
+run: db_run_migrations cache_init
 	uvicorn --reload app.run:api
