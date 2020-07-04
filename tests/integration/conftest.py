@@ -4,6 +4,7 @@ from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
 
 from app.core.database import Database
 from app.core.models.base import Base
@@ -32,3 +33,10 @@ def db_session(db: Database):
                 session.execute(table.delete())
             session.commit()
             session.close()
+
+
+@fixture(scope="session", autouse=True)
+def cache_client():
+    redis_container = RedisContainer("redis:6.0.5-alpine")
+    with redis_container as redis:
+        yield redis.get_client()
