@@ -3,12 +3,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import (
     HTTP_202_ACCEPTED,
-    HTTP_404_NOT_FOUND,
     HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
 )
 from pydantic import EmailStr
 
-from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
+from app.core.errors import ResourceNotFoundError
 from app.core.repositories import UsersRepository
 from app.core.schemas import TokenCreate, Token, UserCreate, UserRead
 from app.core.services import CodeService, JWTService
