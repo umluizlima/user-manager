@@ -20,7 +20,7 @@ make test
 ```
 
 ### Running
-Access the API documentation on http://localhost:8000/docs
+Access the API documentation on http://localhost:8001/docs
 ```console
 make run
 ```

@@ -21,6 +21,11 @@ db_run_migrations: db_init
 cache_init:
 	docker-compose up -d cache
 
+.PHONY: broker_init
+broker_init:
+	docker-compose up -d broker \
+	|| echo "Could not start broker"
+
 .PHONY: test
 test:
 	docker-compose down && \
@@ -28,5 +33,5 @@ test:
 	python -m pytest --cov=app -s
 
 .PHONY: run
-run: db_run_migrations cache_init
-	uvicorn --reload app.run:api
+run: db_run_migrations cache_init broker_init
+	uvicorn --reload --port=8001 app.run:api
