@@ -71,6 +71,17 @@ def test_find_by_id_should_raise_exception_if_not_found(repository):
         repository.find_by_id(123)
 
 
+def test_find_by_email_should_return_user(repository):
+    user = repository.create(new_user)
+    result = repository.find_by_email(user.email)
+    assert result.id == user.id
+
+
+def test_find_by_email_should_raise_exception_if_not_found(repository):
+    with raises(ResourceNotFoundError):
+        repository.find_by_email(new_user["email"] + "a")
+
+
 def test_update_by_id_should_update_user(repository):
     user = repository.create(new_user)
     updated_user = repository.update_by_id(user.id, {"email": "newemail@domain.com"})
