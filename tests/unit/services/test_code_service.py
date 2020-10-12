@@ -21,7 +21,7 @@ def test_code_service_generates_code_with_length(code_service, settings):
 
 def test_code_service_generates_code_with_expiration(code_service, settings):
     code = code_service.generate_code(key)
-    cache_client.setex.assert_called_once_with(
+    cache_client.set_with_expiration.assert_called_once_with(
         key, settings.ACCESS_CODE_EXPIRATION_SECONDS, code
     )
 
@@ -40,5 +40,12 @@ def test_code_service_verify_code_returns_false_if_not_match(code_service):
 
 def test_code_service_verify_code_returns_true_if_match(code_service):
     code = code_service.generate_code(key)
-    cache_client.get.return_value = code.encode()
+    cache_client.get.return_value = code
     assert code_service.verify_code(key, code)
+
+
+def test_code_service_verify_code_deletes_code_if_match(code_service):
+    code = code_service.generate_code(key)
+    cache_client.get.return_value = code
+    code_service.verify_code(key, code)
+    cache_client.delete.assert_called_once_with(key)
