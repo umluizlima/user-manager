@@ -1,11 +1,16 @@
 from pydantic import BaseModel, EmailStr
 
 
-class TokenCreate(BaseModel):
+class AccessCodeCreate(BaseModel):
     email: EmailStr
     create_user: bool = False
 
 
-class Token(BaseModel):
+class AccessTokenCreate(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class AccessToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
