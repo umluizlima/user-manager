@@ -22,8 +22,6 @@ class Settings(BaseSettings):
     JWT_PRIVATE_KEY: bytes
     ACCESS_CODE_LENGTH: int = 6
     ACCESS_CODE_EXPIRATION_SECONDS: int = 300
-    ACCESS_CODE_MESSAGE_SUBJECT = "Access code: {}"
-    ACCESS_CODE_MESSAGE_CONTENT = "{} is your code to access user-manager"
 
     class Config:
         env_file = ".env"
