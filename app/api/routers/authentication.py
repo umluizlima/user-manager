@@ -10,7 +10,7 @@ from pydantic import EmailStr
 
 from app.core.errors import ResourceNotFoundError
 from app.core.repositories import UsersRepository
-from app.core.schemas import TokenCreate, Token, UserCreate, UserRead
+from app.core.schemas import JWTPayload, TokenCreate, Token, UserCreate, UserRead
 from app.core.services import CodeService, JWTService
 from app.core.tasks import SendCodeProducer
 
@@ -65,7 +65,7 @@ def retrieve_token(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
         )
-    jwt = jwt_service.generate_token({"user_id": user.id})
+    jwt = jwt_service.generate_token(JWTPayload(user_id=user.id))
     return Token(access_token=jwt)
 
 
