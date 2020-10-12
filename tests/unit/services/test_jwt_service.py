@@ -1,8 +1,7 @@
-from time import time
-
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from pytest import fixture, raises
 
+from app.core.schemas import JWTPayload
 from app.core.services import JWTService
 
 
@@ -14,22 +13,28 @@ def jwt_service(rsa_keys, settings):
 
 
 @fixture
-def jwt_token(jwt_service):
-    return jwt_service.generate_token({})
+def jwt_payload() -> JWTPayload:
+    return JWTPayload(user_id=123)
 
 
-def test_jwt_service(jwt_service):
-    jwt_service.generate_token({})
+@fixture
+def jwt_token(jwt_service, jwt_payload):
+    return jwt_service.generate_token(jwt_payload)
 
 
-def test_generate_token_raises_exception_on_invalid_private_key(settings):
+def test_jwt_service(jwt_service, jwt_payload):
+    token = jwt_service.generate_token(jwt_payload)
+    assert type(token) == str
+
+
+def test_generate_token_raises_exception_on_invalid_private_key(settings, jwt_payload):
     jwt_service = JWTService(settings)
     with raises(ValueError):
-        jwt_service.generate_token({})
+        jwt_service.generate_token(jwt_payload)
 
 
 def test_generate_token_raises_exception_on_invalid_claims(jwt_service):
-    with raises(TypeError):
+    with raises(AttributeError):
         jwt_service.generate_token(123)
 
 
@@ -46,19 +51,13 @@ def test_verify_token_raises_exception_on_tampered(jwt_service, jwt_token):
         jwt_service.verify_token(jwt_token)
 
 
-def test_verify_token_raises_exception_on_expired(jwt_service):
-    jwt_token = jwt_service.generate_token({"exp": 0})
+def test_verify_token_raises_exception_on_expired(jwt_service, jwt_payload):
+    jwt_payload.exp = 0
+    jwt_token = jwt_service.generate_token(jwt_payload)
     with raises(ExpiredSignatureError):
         jwt_service.verify_token(jwt_token)
 
 
-def test_verify_token_returns_claims(jwt_service):
-    payload = {"test": 123}
-    jwt_token = jwt_service.generate_token(payload)
-    assert jwt_service.verify_token(jwt_token) == payload
-
-
-def test_verify_token_returns_not_expired(jwt_service):
-    payload = {"exp": time() + 100}
-    jwt_token = jwt_service.generate_token(payload)
-    assert jwt_service.verify_token(jwt_token) == payload
+def test_verify_token_returns_claims_if_not_expired(jwt_service, jwt_payload):
+    jwt_token = jwt_service.generate_token(jwt_payload)
+    assert jwt_service.verify_token(jwt_token) == jwt_payload
