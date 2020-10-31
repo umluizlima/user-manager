@@ -13,7 +13,7 @@ from starlette.status import (
 
 from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from app.core.models import User
-from app.core.schemas import UserCreate, UserRead, UserUpdate
+from app.core.schemas import UserCreate, UserUpdate
 
 now = datetime.now()
 user_dict_1 = {

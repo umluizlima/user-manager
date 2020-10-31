@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, constr, condecimal, EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):

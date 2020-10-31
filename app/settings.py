@@ -1,8 +1,7 @@
 from enum import Enum
 from functools import lru_cache
-from typing import Optional
 
-from pydantic import BaseSettings, EmailStr
+from pydantic import BaseSettings
 
 
 class Environment(str, Enum):
