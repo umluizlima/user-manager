@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 
 from pytest import fixture, raises
 

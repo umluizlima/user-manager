@@ -2,8 +2,6 @@ from enum import Enum
 
 from celery import Celery
 
-from app.settings import Settings
-
 
 class Task(str, Enum):
     SEND_TRANSACTIONAL = "SEND_TRANSACTIONAL"

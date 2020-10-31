@@ -12,7 +12,7 @@ from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
-from ..dependencies import token_checker, users_repository
+from ..dependencies import get_jwt, users_repository
 
 router = APIRouter()
 
@@ -62,5 +62,5 @@ def delete(user_id: int, users: UsersRepository = Depends(users_repository)):
 
 def configure(app, settings):
     app.include_router(
-        router, tags=["users"], prefix="/api/v1", dependencies=[Depends(token_checker)],
+        router, tags=["users"], prefix="/api/v1", dependencies=[Depends(get_jwt)],
     )

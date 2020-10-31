@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from pytest import raises
 
-from app.settings import Environment, Settings
+from app.settings import Environment
 from tests.conftest import get_test_settings
 
 

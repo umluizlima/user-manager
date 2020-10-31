@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import Database
 from app.core.repositories import UsersRepository
-from app.settings import get_settings, Settings
+from app.settings import Settings, get_settings
 
 
 def db_session(settings: Settings = Depends(get_settings)):

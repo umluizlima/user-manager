@@ -1,8 +1,6 @@
 from os import environ, system
 
 from pytest import fixture
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
 

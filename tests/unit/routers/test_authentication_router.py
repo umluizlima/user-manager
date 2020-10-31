@@ -1,11 +1,6 @@
 from datetime import datetime
 
-from pytest import fixture
-from starlette.status import (
-    HTTP_202_ACCEPTED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-)
+from starlette.status import HTTP_202_ACCEPTED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from app.core.errors import ResourceNotFoundError
 from app.core.models import User
@@ -40,9 +35,7 @@ def test_generate_access_code_should_return_status_404_if_user_is_not_found(
     assert response.status_code == HTTP_404_NOT_FOUND
 
 
-def test_generate_access_code_should_create_user_if_does_not_exist_and_parameter_is_passed(
-    client, mock_dependency
-):
+def test_generate_access_code_should_create_user(client, mock_dependency):
     mock_dependency.find_by_email.side_effect = ResourceNotFoundError
     mock_dependency.create.return_value = user_2
     mock_dependency.generate_code.return_value = code
