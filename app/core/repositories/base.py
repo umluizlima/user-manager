@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.exc import IntegrityError
 
 from ..errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from ..models import BaseModel

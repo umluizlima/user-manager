@@ -1,12 +1,12 @@
 import logging
 
-from fastapi import Depends, Security, HTTPException
+from fastapi import Depends, HTTPException, Security
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.status import HTTP_403_FORBIDDEN
 
 from app.core.schemas import JWTPayload
 from app.core.services import JWTService
-from app.settings import get_settings, Settings
+from app.settings import Settings, get_settings
 
 jwt_scheme = HTTPBearer(scheme_name="JWT")
 

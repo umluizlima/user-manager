@@ -6,9 +6,9 @@ from starlette.testclient import TestClient
 from app.api import create_api
 from app.api.dependencies import (
     code_service,
+    get_jwt,
     jwt_service,
     send_code_producer,
-    get_jwt,
     users_repository,
 )
 

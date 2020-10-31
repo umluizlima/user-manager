@@ -3,7 +3,7 @@ from fastapi import Depends
 from app.core.adapters import CacheAdapter
 from app.core.cache import get_cache_client
 from app.core.services import CodeService
-from app.settings import get_settings, Settings
+from app.settings import Settings, get_settings
 
 
 def cache_client(settings: Settings = Depends(get_settings)):

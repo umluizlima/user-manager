@@ -1,9 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from starlette.status import (
-    HTTP_202_ACCEPTED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-)
+from starlette.status import HTTP_202_ACCEPTED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from app.core.errors import ResourceNotFoundError
 from app.core.repositories import UsersRepository

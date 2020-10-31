@@ -2,8 +2,8 @@ from time import time
 
 from jwt import decode, encode
 
-from app.settings import Settings
 from app.core.schemas import JWTPayload
+from app.settings import Settings
 
 
 class JWTService:

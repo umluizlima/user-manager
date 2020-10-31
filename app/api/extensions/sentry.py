@@ -1,5 +1,5 @@
-from fastapi import FastAPI
 import sentry_sdk
+from fastapi import FastAPI
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from app.settings import Environment, Settings
