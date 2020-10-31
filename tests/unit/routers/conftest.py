@@ -8,7 +8,7 @@ from app.api.dependencies import (
     code_service,
     jwt_service,
     send_code_producer,
-    token_checker,
+    get_jwt,
     users_repository,
 )
 
@@ -36,7 +36,7 @@ def client(settings):
     api.dependency_overrides[code_service] = get_mock
     api.dependency_overrides[jwt_service] = get_mock
     api.dependency_overrides[send_code_producer] = get_mock
-    api.dependency_overrides[token_checker] = get_mock
+    api.dependency_overrides[get_jwt] = get_mock
     api.dependency_overrides[users_repository] = get_mock
     client = TestClient(api)
     return client

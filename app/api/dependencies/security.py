@@ -4,6 +4,7 @@ from fastapi import Depends, Security, HTTPException
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.status import HTTP_403_FORBIDDEN
 
+from app.core.schemas import JWTPayload
 from app.core.services import JWTService
 from app.settings import get_settings, Settings
 
@@ -14,12 +15,12 @@ def jwt_service(settings: Settings = Depends(get_settings)):
     return JWTService(settings)
 
 
-def token_checker(
-    token_service: JWTService = Depends(jwt_service),
+def get_jwt(
+    jwt_service: JWTService = Depends(jwt_service),
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
-):
+) -> JWTPayload:
     try:
-        return token_service.verify_token(header.credentials)
+        return jwt_service.verify_token(header.credentials)
     except Exception:
         logging.exception("Token verification raised exception")
         raise HTTPException(

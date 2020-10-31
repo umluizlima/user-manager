@@ -25,7 +25,6 @@ from ..dependencies import (
     code_service,
     jwt_service,
     send_code_producer,
-    token_checker,
     users_repository,
 )
 
