@@ -10,9 +10,9 @@ now = datetime.now()
 code = "123456"
 jwt = "headers.payload.signature"
 access_code_body_1 = AccessCodeCreate(email="email@domain.com", create_user=False)
-user_1 = User(id=1, created_at=now, email="email@domain.com")
+user_1 = User(id=1, created_at=now, email="email@domain.com", roles=[])
 access_code_body_2 = AccessCodeCreate(email="anotheremail@domain.com", create_user=True)
-user_2 = User(id=2, created_at=now, email="anotheremail@domain.com")
+user_2 = User(id=2, created_at=now, email="anotheremail@domain.com", roles=[])
 access_token_body = AccessTokenCreate(email="email@domain.com", code=code)
 
 

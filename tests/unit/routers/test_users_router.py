@@ -19,11 +19,11 @@ now = datetime.now()
 user_dict_1 = {
     "email": "email@domain.com",
 }
-user_1 = User(id=1, created_at=now, **user_dict_1)
+user_1 = User(id=1, created_at=now, roles=[], **user_dict_1)
 user_dict_2 = {
     "email": "anotheremail@domain.com",
 }
-user_2 = User(id=2, created_at=now, **user_dict_2)
+user_2 = User(id=2, created_at=now, roles=[], **user_dict_2)
 
 
 @fixture

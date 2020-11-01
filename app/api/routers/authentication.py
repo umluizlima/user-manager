@@ -66,7 +66,7 @@ def generate_access_token(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
         )
-    jwt = jwt_service.generate_token(JWTPayload(user_id=user.id))
+    jwt = jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
     return AccessToken(access_token=jwt)
 
 
