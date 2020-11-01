@@ -4,8 +4,10 @@ from pytest import fixture
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
 
+from app.core.adapters import CacheAdapter
 from app.core.database import Database
 from app.core.models.base import Base
+from app.core.repositories import UsersRepository
 from tests.conftest import get_test_settings
 
 
@@ -38,3 +40,13 @@ def cache_client():
     redis_container = RedisContainer("redis:6.0.5-alpine")
     with redis_container as redis:
         yield redis.get_client()
+
+
+@fixture
+def cache_adapter(cache_client):
+    return CacheAdapter(cache_client)
+
+
+@fixture
+def users_repository(db_session):
+    return UsersRepository(db_session)

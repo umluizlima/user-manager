@@ -2,13 +2,7 @@ from time import sleep
 
 from pytest import fixture
 
-from app.core.adapters import CacheAdapter
 from app.core.services import CodeService
-
-
-@fixture
-def cache_adapter(cache_client):
-    return CacheAdapter(cache_client)
 
 
 @fixture
