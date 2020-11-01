@@ -1,19 +1,19 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from starlette.status import (
-    HTTP_201_CREATED,
-    HTTP_204_NO_CONTENT,
-    HTTP_404_NOT_FOUND,
-    HTTP_409_CONFLICT,
-)
+from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_409_CONFLICT
 
-from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
-from app.core.models import User
+from app.core.errors import ResourceAlreadyExistsError
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
-from ..dependencies import find_user_by_id, get_current_user, get_jwt, users_repository
+from ..dependencies import (
+    delete_user_by_id,
+    find_user_by_id,
+    get_jwt,
+    update_user_by_id,
+    users_repository,
+)
 
 router = APIRouter()
 
@@ -31,11 +31,6 @@ def list(users: UsersRepository = Depends(users_repository)):
     return users.find_all()
 
 
-@router.get("/users/me", response_model=UserRead)
-def read_self(current_user: User = Depends(get_current_user)):
-    return current_user
-
-
 @router.get("/users/{user_id}", response_model=UserRead)
 def read(user_id: int, users: UsersRepository = Depends(users_repository)):
     return find_user_by_id(user_id, users)
@@ -45,22 +40,12 @@ def read(user_id: int, users: UsersRepository = Depends(users_repository)):
 def update(
     user_id: int, user: UserUpdate, users: UsersRepository = Depends(users_repository)
 ):
-    try:
-        return users.update_by_id(user_id, user.dict(exclude_unset=True))
-    except ResourceNotFoundError:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
-    except ResourceAlreadyExistsError:
-        raise HTTPException(
-            status_code=HTTP_409_CONFLICT, detail="User with data already exists"
-        )
+    return update_user_by_id(user_id, user, users)
 
 
 @router.delete("/users/{user_id}", status_code=HTTP_204_NO_CONTENT)
 def delete(user_id: int, users: UsersRepository = Depends(users_repository)):
-    try:
-        return users.delete_by_id(user_id)
-    except ResourceNotFoundError:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
+    return delete_user_by_id(user_id, users)
 
 
 def configure(app, settings):
