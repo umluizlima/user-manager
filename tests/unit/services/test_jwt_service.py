@@ -14,7 +14,7 @@ def jwt_service(rsa_keys, settings):
 
 @fixture
 def jwt_payload() -> JWTPayload:
-    return JWTPayload(user_id=123)
+    return JWTPayload(user_id=123, roles=[])
 
 
 @fixture
