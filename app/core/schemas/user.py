@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel, EmailStr
+
+from app.core.models import UserRoles
 
 
 class UserBase(BaseModel):
@@ -18,6 +21,7 @@ class UserUpdate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+    roles: List[UserRoles]
 
     class Config:
         orm_mode = True
