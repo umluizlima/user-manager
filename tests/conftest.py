@@ -37,5 +37,12 @@ def settings():
     return get_test_settings()
 
 
+@fixture
+def settings_with_rsa(rsa_keys, settings):
+    settings.JWT_PRIVATE_KEY = rsa_keys["private"]
+    settings.JWT_PUBLIC_KEY = rsa_keys["public"]
+    return settings
+
+
 def get_test_settings():
     return Settings(_env_file=None)
