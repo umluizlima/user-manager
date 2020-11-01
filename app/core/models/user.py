@@ -11,7 +11,7 @@ class AutoName(Enum):
         return name
 
 
-class UserRoles(AutoName):
+class UserRoles(str, AutoName):
     ADMIN = auto()
 
 
