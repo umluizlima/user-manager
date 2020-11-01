@@ -9,10 +9,11 @@ from starlette.status import (
 )
 
 from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
+from app.core.models import User
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
-from ..dependencies import get_jwt, users_repository
+from ..dependencies import find_user_by_id, get_current_user, get_jwt, users_repository
 
 router = APIRouter()
 
@@ -30,12 +31,14 @@ def list(users: UsersRepository = Depends(users_repository)):
     return users.find_all()
 
 
+@router.get("/users/me", response_model=UserRead)
+def read_self(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
 @router.get("/users/{user_id}", response_model=UserRead)
 def read(user_id: int, users: UsersRepository = Depends(users_repository)):
-    try:
-        return users.find_by_id(user_id)
-    except ResourceNotFoundError:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
+    return find_user_by_id(user_id, users)
 
 
 @router.put("/users/{user_id}", response_model=UserRead)
