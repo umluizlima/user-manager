@@ -19,8 +19,8 @@ def user(users_repository):
 
 
 @fixture
-def user_jwt(jwt_service, user):
-    return jwt_service.generate_token(
+def user_jwt(access_token_service, user):
+    return access_token_service.generate_token(
         AccessTokenPayload(user_id=user.id, roles=user.roles)
     )
 
@@ -55,8 +55,10 @@ def test_read_self_should_return_403_for_invalid_jwt(client):
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
-def test_read_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt = jwt_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
+def test_read_self_should_return_404_if_user_does_not_exist(
+    client, access_token_service
+):
+    jwt = access_token_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
     response = read_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
 
@@ -100,17 +102,19 @@ def test_update_self_should_return_403_for_invalid_jwt(client):
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
-def test_update_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt = jwt_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
+def test_update_self_should_return_404_if_user_does_not_exist(
+    client, access_token_service
+):
+    jwt = access_token_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
     response = update_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
 
 
 def test_update_self_should_return_409_if_data_conflicts(
-    client, jwt_service, user, users_repository
+    client, access_token_service, user, users_repository
 ):
     users_repository.create(update_payload)
-    jwt = jwt_service.generate_token(
+    jwt = access_token_service.generate_token(
         AccessTokenPayload(user_id=user.id, roles=user.roles)
     )
     response = update_self_request(client, jwt)
@@ -145,7 +149,9 @@ def test_delete_self_should_return_403_for_invalid_jwt(client):
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
-def test_delete_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt = jwt_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
+def test_delete_self_should_return_404_if_user_does_not_exist(
+    client, access_token_service
+):
+    jwt = access_token_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
     response = delete_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND

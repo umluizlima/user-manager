@@ -17,7 +17,7 @@ def send_code_producer_mock():
 
 
 @fixture
-def jwt_service(settings_with_rsa):
+def access_token_service(settings_with_rsa):
     return AccessTokenService(settings_with_rsa)
 
 

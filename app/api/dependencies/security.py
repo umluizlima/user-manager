@@ -16,16 +16,18 @@ from .repositories import find_user_by_id, users_repository
 jwt_scheme = HTTPBearer(scheme_name="JWT")
 
 
-def jwt_service(settings: Settings = Depends(get_settings)):
+def access_token_service(
+    settings: Settings = Depends(get_settings),
+) -> AccessTokenService:
     return AccessTokenService(settings)
 
 
 def get_jwt(
-    jwt_service: AccessTokenService = Depends(jwt_service),
+    access_token_service: AccessTokenService = Depends(access_token_service),
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
 ) -> AccessTokenPayload:
     try:
-        return jwt_service.verify_token(header.credentials)
+        return access_token_service.verify_token(header.credentials)
     except Exception:
         logging.exception("Token verification raised exception")
         raise HTTPException(

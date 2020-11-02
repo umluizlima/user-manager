@@ -14,8 +14,8 @@ def user(users_repository):
 
 
 @fixture
-def user_jwt(jwt_service, user):
-    return jwt_service.generate_token(
+def user_jwt(access_token_service, user):
+    return access_token_service.generate_token(
         AccessTokenPayload(user_id=user.id, roles=user.roles)
     )
 
@@ -56,16 +56,16 @@ def test_update_user_roles_should_return_403_for_invalid_jwt(client):
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
-def test_update_user_should_return_403_for_non_admin(client, jwt_service):
-    jwt = jwt_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
+def test_update_user_should_return_403_for_non_admin(client, access_token_service):
+    jwt = access_token_service.generate_token(AccessTokenPayload(user_id=1, roles=[]))
     response = update_user_roles_request(client, 1, jwt, [])
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
 def test_update_user_roles_should_return_404_if_user_does_not_exist(
-    client, jwt_service
+    client, access_token_service
 ):
-    jwt = jwt_service.generate_token(
+    jwt = access_token_service.generate_token(
         AccessTokenPayload(user_id=1, roles=[UserRoles.ADMIN])
     )
     response = update_user_roles_request(client, 1, jwt, [])
