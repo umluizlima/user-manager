@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
@@ -5,7 +6,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
-from ..errors import ResourceAlreadyExistsError, ResourceNotFoundError
+from ..errors import (
+    DatabaseCommitFailedError,
+    ResourceAlreadyExistsError,
+    ResourceNotFoundError,
+)
 from ..models import BaseModel
 
 
@@ -18,10 +23,17 @@ class BaseRepository(ABC):
     def __init__(self, db: Session):
         self.db = db
 
-    def save(self, obj: BaseModel) -> BaseModel:
+    def save(self, obj: BaseModel, commit: bool = False) -> BaseModel:
         self.db.add(obj)
-        self.db.commit()
-        self.db.refresh(obj)
+        if commit:
+            try:
+                self.db.commit()
+                self.db.refresh(obj)
+            except Exception:
+                logging.exception("Database commit raised exception")
+                raise DatabaseCommitFailedError
+            finally:
+                self.db.rollback()
         return obj
 
     def find_all(self) -> List[BaseModel]:
@@ -34,18 +46,18 @@ class BaseRepository(ABC):
             raise ResourceNotFoundError
 
     def delete_by_id(self, id: int):
-        if not self._filter_by_id(id).delete():
+        if not self._filter_by_id(id).delete(synchronize_session="fetch"):
             raise ResourceNotFoundError
 
     def create(self, data: Dict) -> BaseModel:
         try:
-            return self.save(self.__model__(**data))
-        except IntegrityError:
+            return self.save(self.__model__(**data), commit=True)
+        except (IntegrityError, DatabaseCommitFailedError):
             raise ResourceAlreadyExistsError
 
     def update_by_id(self, id: int, data: Dict):
         try:
-            if not self._filter_by_id(id).update(data):
+            if not self._filter_by_id(id).update(data, synchronize_session="fetch"):
                 raise ResourceNotFoundError
         except IntegrityError:
             raise ResourceAlreadyExistsError
