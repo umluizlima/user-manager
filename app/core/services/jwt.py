@@ -18,7 +18,7 @@ class BaseJWTService(ABC):
 
     def generate_token(self, payload: BaseJWTPayload) -> str:
         if payload.exp is None:
-            payload.exp = time() + self._settings.JWT_EXPIRATION_SECONDS
+            payload.exp = self._calculate_exp()
         return encode(
             payload=payload.dict(by_alias=True),
             key=self._settings.JWT_PRIVATE_KEY,
@@ -34,6 +34,13 @@ class BaseJWTService(ABC):
             )
         )
 
+    @abstractmethod
+    def _calculate_exp(self) -> float:
+        ...
+
 
 class AccessTokenService(BaseJWTService):
     __payload__ = AccessTokenPayload
+
+    def _calculate_exp(self) -> float:
+        return time() + self._settings.ACCESS_TOKEN_EXPIRATION_SECONDS

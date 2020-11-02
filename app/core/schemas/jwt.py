@@ -8,7 +8,7 @@ from app.core.models import UserRoles
 
 
 class BaseJWTPayload(BaseModel):
-    exp: Optional[float] = None
+    exp: Optional[float]
     jti: str = str(uuid4())
     nbf: float = time()
 
