@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from time import time
 
 from jwt import decode, encode
@@ -6,7 +7,12 @@ from app.core.schemas import JWTPayload
 from app.settings import Settings
 
 
-class JWTService:
+class BaseJWTService(ABC):
+    @property
+    @abstractmethod
+    def __payload__(self) -> JWTPayload:
+        ...
+
     def __init__(self, settings: Settings):
         self._settings = settings
 
@@ -20,10 +26,14 @@ class JWTService:
         ).decode(encoding="utf-8")
 
     def verify_token(self, token: str) -> JWTPayload:
-        return JWTPayload(
+        return self.__payload__(
             **decode(
                 jwt=token,
                 key=self._settings.JWT_PUBLIC_KEY,
                 algorithms=[self._settings.JWT_ALGORITHM],
             )
         )
+
+
+class JWTService(BaseJWTService):
+    __payload__ = JWTPayload
