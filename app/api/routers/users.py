@@ -47,7 +47,7 @@ def update_user(
     user: UserUpdate,
     users_repository: UsersRepository = Depends(users_repository),
 ):
-    return update_user_by_id(user_id, user, users_repository)
+    return update_user_by_id(user_id, user.dict(exclude_unset=True), users_repository)
 
 
 @router.delete("/users/{user_id}", status_code=HTTP_204_NO_CONTENT)

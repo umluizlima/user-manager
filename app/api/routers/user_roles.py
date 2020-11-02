@@ -6,7 +6,7 @@ from app.core.models import UserRoles
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserRead
 
-from ..dependencies import WithRoles, users_repository
+from ..dependencies import WithRoles, update_user_by_id, users_repository
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ def update_user_roles(
     user_roles: List[UserRoles],
     users_repository: UsersRepository = Depends(users_repository),
 ):
-    return users_repository.update_by_id(user_id, {"roles": user_roles})
+    return update_user_by_id(user_id, {"roles": user_roles}, users_repository)
 
 
 def configure(app, settings):
