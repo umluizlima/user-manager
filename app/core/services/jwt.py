@@ -3,20 +3,20 @@ from time import time
 
 from jwt import decode, encode
 
-from app.core.schemas import JWTPayload
+from app.core.schemas import AccessTokenPayload, BaseJWTPayload
 from app.settings import Settings
 
 
 class BaseJWTService(ABC):
     @property
     @abstractmethod
-    def __payload__(self) -> JWTPayload:
+    def __payload__(self) -> BaseJWTPayload:
         ...
 
     def __init__(self, settings: Settings):
         self._settings = settings
 
-    def generate_token(self, payload: JWTPayload) -> str:
+    def generate_token(self, payload: BaseJWTPayload) -> str:
         if payload.exp is None:
             payload.exp = time() + self._settings.JWT_EXPIRATION_SECONDS
         return encode(
@@ -25,7 +25,7 @@ class BaseJWTService(ABC):
             algorithm=self._settings.JWT_ALGORITHM,
         ).decode(encoding="utf-8")
 
-    def verify_token(self, token: str) -> JWTPayload:
+    def verify_token(self, token: str) -> BaseJWTPayload:
         return self.__payload__(
             **decode(
                 jwt=token,
@@ -35,5 +35,5 @@ class BaseJWTService(ABC):
         )
 
 
-class JWTService(BaseJWTService):
-    __payload__ = JWTPayload
+class AccessTokenService(BaseJWTService):
+    __payload__ = AccessTokenPayload

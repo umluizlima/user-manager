@@ -1,2 +1,2 @@
 from .code import CodeService
-from .jwt import JWTService
+from .jwt import AccessTokenService
