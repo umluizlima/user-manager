@@ -1,20 +1,20 @@
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from pytest import fixture, raises
 
-from app.core.schemas import JWTPayload
-from app.core.services import JWTService
+from app.core.schemas import AccessTokenPayload
+from app.core.services import AccessTokenService
 
 
 @fixture
 def jwt_service(rsa_keys, settings):
     settings.JWT_PRIVATE_KEY = rsa_keys["private"]
     settings.JWT_PUBLIC_KEY = rsa_keys["public"]
-    return JWTService(settings)
+    return AccessTokenService(settings)
 
 
 @fixture
-def jwt_payload() -> JWTPayload:
-    return JWTPayload(user_id=123, roles=[])
+def jwt_payload() -> AccessTokenPayload:
+    return AccessTokenPayload(user_id=123, roles=[])
 
 
 @fixture
@@ -28,7 +28,7 @@ def test_jwt_service(jwt_service, jwt_payload):
 
 
 def test_generate_token_raises_exception_on_invalid_private_key(settings, jwt_payload):
-    jwt_service = JWTService(settings)
+    jwt_service = AccessTokenService(settings)
     with raises(ValueError):
         jwt_service.generate_token(jwt_payload)
 
@@ -40,7 +40,7 @@ def test_generate_token_raises_exception_on_invalid_claims(jwt_service):
 
 def test_verify_token_raises_exception_on_invalid_public_key(jwt_token, settings):
     settings.JWT_PUBLIC_KEY = b""
-    jwt_service = JWTService(settings)
+    jwt_service = AccessTokenService(settings)
     with raises(ValueError):
         jwt_service.verify_token(jwt_token)
 
