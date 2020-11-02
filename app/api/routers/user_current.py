@@ -27,7 +27,9 @@ def update_self(
     jwt: JWTPayload = Depends(get_jwt),
     users_repository: UsersRepository = Depends(users_repository),
 ):
-    return update_user_by_id(jwt.user_id, user, users_repository)
+    return update_user_by_id(
+        jwt.user_id, user.dict(exclude_unset=True), users_repository
+    )
 
 
 @router.delete("/users/me", status_code=HTTP_204_NO_CONTENT)

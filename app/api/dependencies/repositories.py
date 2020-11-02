@@ -1,3 +1,5 @@
+from typing import Dict
+
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
@@ -6,7 +8,6 @@ from app.core.database import Database
 from app.core.errors import ResourceAlreadyExistsError, ResourceNotFoundError
 from app.core.models import User
 from app.core.repositories import UsersRepository
-from app.core.schemas import UserUpdate
 from app.settings import Settings, get_settings
 
 
@@ -27,9 +28,9 @@ def find_user_by_id(user_id: int, users: UsersRepository) -> User:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
 
 
-def update_user_by_id(user_id: int, user: UserUpdate, users: UsersRepository) -> User:
+def update_user_by_id(user_id: int, user: Dict, users: UsersRepository) -> User:
     try:
-        return users.update_by_id(user_id, user.dict(exclude_unset=True))
+        return users.update_by_id(user_id, user)
     except ResourceNotFoundError:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="User not found")
     except ResourceAlreadyExistsError:
