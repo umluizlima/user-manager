@@ -39,6 +39,9 @@ def db_session(db: Database):
 def cache_client():
     redis_container = RedisContainer("redis:6.0.5-alpine")
     with redis_container as redis:
+        host = redis.get_container_host_ip()
+        port = redis.get_exposed_port(6379)
+        environ["CACHE_URL"] = f"redis://:@{host}:{port}/0"
         yield redis.get_client()
 
 

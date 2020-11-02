@@ -24,7 +24,7 @@ def user_jwt(jwt_service, user):
 
 
 def read_self_request(client, jwt):
-    return client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {jwt}"},)
+    return client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {jwt}"})
 
 
 @fixture
