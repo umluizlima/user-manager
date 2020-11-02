@@ -4,13 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_409_CONFLICT
 
 from app.core.errors import ResourceAlreadyExistsError
+from app.core.models import UserRoles
 from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
 from ..dependencies import (
+    UserWithRoles,
     delete_user_by_id,
     find_user_by_id,
-    get_jwt,
     update_user_by_id,
     users_repository,
 )
@@ -58,5 +59,8 @@ def delete_user(
 
 def configure(app, settings):
     app.include_router(
-        router, tags=["users"], prefix="/api/v1", dependencies=[Depends(get_jwt)],
+        router,
+        tags=["users"],
+        prefix="/api/v1",
+        dependencies=[Depends(UserWithRoles([UserRoles.ADMIN]))],
     )
