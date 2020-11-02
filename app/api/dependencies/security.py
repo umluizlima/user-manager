@@ -1,10 +1,11 @@
 import logging
+from typing import List
 
 from fastapi import Depends, HTTPException, Security
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.status import HTTP_403_FORBIDDEN
 
-from app.core.models import User
+from app.core.models import User, UserRoles
 from app.core.repositories import UsersRepository
 from app.core.schemas import JWTPayload
 from app.core.services import JWTService
@@ -37,3 +38,16 @@ def get_current_user(
     users_repository: UsersRepository = Depends(users_repository),
 ) -> User:
     return find_user_by_id(jwt.user_id, users_repository)
+
+
+class UserWithRoles:
+    def __init__(self, roles: List[UserRoles]):
+        self._roles = set(roles)
+
+    def __call__(self, current_user: User = Depends(get_current_user)):
+        if not self._roles.intersection(current_user.roles):
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail=f"User lacks required roles: {self._roles}",
+            )
+        return current_user
