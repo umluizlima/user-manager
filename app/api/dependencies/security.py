@@ -22,7 +22,7 @@ def access_token_service(
     return AccessTokenService(settings)
 
 
-def get_jwt(
+def access_token(
     access_token_service: AccessTokenService = Depends(access_token_service),
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
 ) -> AccessTokenPayload:
@@ -36,7 +36,7 @@ def get_jwt(
 
 
 def get_current_user(
-    jwt: AccessTokenPayload = Depends(get_jwt),
+    jwt: AccessTokenPayload = Depends(access_token),
     users_repository: UsersRepository = Depends(users_repository),
 ) -> User:
     return find_user_by_id(jwt.user_id, users_repository)
@@ -46,7 +46,7 @@ class WithRoles:
     def __init__(self, roles: List[UserRoles]):
         self._roles = set(roles)
 
-    def __call__(self, jwt: AccessTokenPayload = Depends(get_jwt)):
+    def __call__(self, jwt: AccessTokenPayload = Depends(access_token)):
         if not self._roles.intersection(jwt.roles):
             role_values = [role.value for role in self._roles]
             raise HTTPException(
