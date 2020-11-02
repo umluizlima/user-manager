@@ -8,3 +8,7 @@ class ResourceNotFoundError(Error):
 
 class ResourceAlreadyExistsError(Error):
     pass
+
+
+class DatabaseCommitFailedError(Error):
+    pass
