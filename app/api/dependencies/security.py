@@ -35,7 +35,7 @@ def access_token(
         )
 
 
-def get_current_user(
+def current_user(
     jwt: AccessTokenPayload = Depends(access_token),
     users_repository: UsersRepository = Depends(users_repository),
 ) -> User:

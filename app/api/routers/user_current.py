@@ -7,8 +7,8 @@ from app.core.schemas import AccessTokenPayload, UserRead, UserUpdate
 
 from ..dependencies import (
     access_token,
+    current_user,
     delete_user_by_id,
-    get_current_user,
     update_user_by_id,
     users_repository,
 )
@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/users/me", response_model=UserRead)
-def read_self(current_user: User = Depends(get_current_user)):
+def read_self(current_user: User = Depends(current_user)):
     return current_user
 
 
