@@ -40,14 +40,14 @@ def get_current_user(
     return find_user_by_id(jwt.user_id, users_repository)
 
 
-class UserWithRoles:
+class WithRoles:
     def __init__(self, roles: List[UserRoles]):
         self._roles = set(roles)
 
-    def __call__(self, current_user: User = Depends(get_current_user)):
-        if not self._roles.intersection(current_user.roles):
+    def __call__(self, jwt: JWTPayload = Depends(get_jwt)):
+        if not self._roles.intersection(jwt.roles):
+            role_values = [role.value for role in self._roles]
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN,
-                detail=f"User lacks required roles: {self._roles}",
+                detail=f"User lacks required roles: {role_values}",
             )
-        return current_user

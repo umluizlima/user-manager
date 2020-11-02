@@ -9,7 +9,7 @@ from app.core.repositories import UsersRepository
 from app.core.schemas import UserCreate, UserRead, UserUpdate
 
 from ..dependencies import (
-    UserWithRoles,
+    WithRoles,
     delete_user_by_id,
     find_user_by_id,
     update_user_by_id,
@@ -62,5 +62,5 @@ def configure(app, settings):
         router,
         tags=["users"],
         prefix="/api/v1",
-        dependencies=[Depends(UserWithRoles([UserRoles.ADMIN]))],
+        dependencies=[Depends(WithRoles([UserRoles.ADMIN]))],
     )
