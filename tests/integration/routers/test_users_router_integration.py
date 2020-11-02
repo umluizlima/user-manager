@@ -10,10 +10,10 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from app.core.models import User
+from app.core.models import User, UserRoles
 from app.core.schemas import JWTPayload, UserRead
 
-user_dict_1 = {"email": "email@domain.com"}
+user_dict_1 = {"email": "email@domain.com", "roles": [UserRoles.ADMIN]}
 user_dict_2 = {"email": "anotheremail@domain.com"}
 
 
@@ -24,6 +24,12 @@ def user(users_repository):
 
 @fixture
 def user_jwt(jwt_service, user):
+    return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+
+
+@fixture
+def user_2_jwt(jwt_service, users_repository):
+    user = users_repository.create(user_dict_2)
     return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
 
 
@@ -57,17 +63,13 @@ def test_list_users_should_return_list_of_users_size(list_users_response):
     assert len(list_users_response.json()) == 2
 
 
-def test_list_users_should_return_empty_list_if_no_users(
-    client, users_repository, user, user_jwt
-):
-    users_repository.delete_by_id(user.id)
-    users_repository.db.commit()
-    response = list_users_request(client, user_jwt)
-    assert len(response.json()) == 0
-
-
 def test_list_users_should_return_403_for_invalid_jwt(client):
     response = list_users_request(client, 123)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
+def test_list_users_should_return_403_for_non_admin(client, user_2_jwt):
+    response = list_users_request(client, user_2_jwt)
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
@@ -105,6 +107,11 @@ def test_read_user_should_return_403_for_invalid_jwt(client):
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
+def test_read_user_should_return_403_for_non_admin(client, user_2_jwt):
+    response = read_user_request(client, 123, user_2_jwt)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
 def create_user_request(client, payload, jwt):
     return client.post(
         "/api/v1/users", headers={"Authorization": f"Bearer {jwt}"}, json=payload,
@@ -138,6 +145,16 @@ def test_create_user_should_return_status_409_on_payload_conflict(client, user_j
     assert response.status_code == HTTP_409_CONFLICT
 
 
+def test_create_user_should_return_403_for_invalid_jwt(client):
+    response = create_user_request(client, {}, 123)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
+def test_create_user_should_return_403_for_non_admin(client, user_2_jwt):
+    response = create_user_request(client, {}, user_2_jwt)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
 def delete_user_request(client, user_id, jwt):
     return client.delete(
         f"/api/v1/users/{user_id}", headers={"Authorization": f"Bearer {jwt}"},
@@ -166,6 +183,16 @@ def test_delete_user_should_remove_user_from_database(
 def test_delete_user_should_return_status_404_if_user_not_found(client, user_jwt):
     response = delete_user_request(client, 123456, user_jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
+
+
+def test_delete_user_should_return_403_for_invalid_jwt(client):
+    response = delete_user_request(client, 123, 123)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
+def test_delete_user_should_return_403_for_non_admin(client, user_2_jwt):
+    response = delete_user_request(client, 123, user_2_jwt)
+    assert response.status_code == HTTP_403_FORBIDDEN
 
 
 def update_user_request(client, user_id, payload, jwt):
@@ -219,3 +246,13 @@ def test_update_user_should_ignore_unknown_fields(client, user, user_jwt):
     update_data = {"key": "value", **user_dict_1}
     response = update_user_request(client, user.id, update_data, user_jwt)
     assert "key" not in response.json()
+
+
+def test_update_user_should_return_403_for_invalid_jwt(client):
+    response = update_user_request(client, 123, {}, 123)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
+def test_update_user_should_return_403_for_non_admin(client, user_2_jwt):
+    response = update_user_request(client, 123, {}, user_2_jwt)
+    assert response.status_code == HTTP_403_FORBIDDEN
