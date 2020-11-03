@@ -11,7 +11,7 @@ from starlette.status import (
 )
 
 from app.core.models import User, UserRoles
-from app.core.schemas import JWTPayload, UserRead
+from app.core.schemas import AccessTokenPayload, UserRead
 
 user_dict_1 = {"email": "email@domain.com", "roles": [UserRoles.ADMIN]}
 user_dict_2 = {"email": "anotheremail@domain.com"}
@@ -23,14 +23,18 @@ def user(users_repository):
 
 
 @fixture
-def user_jwt(jwt_service, user):
-    return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+def user_jwt(access_token_service, user):
+    return access_token_service.generate_token(
+        AccessTokenPayload(user_id=user.id, roles=user.roles)
+    )
 
 
 @fixture
-def user_2_jwt(jwt_service, users_repository):
+def user_2_jwt(access_token_service, users_repository):
     user = users_repository.create(user_dict_2)
-    return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+    return access_token_service.generate_token(
+        AccessTokenPayload(user_id=user.id, roles=user.roles)
+    )
 
 
 def list_users_request(client, jwt):

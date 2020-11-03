@@ -3,12 +3,12 @@ from starlette.status import HTTP_204_NO_CONTENT
 
 from app.core.models import User
 from app.core.repositories import UsersRepository
-from app.core.schemas import JWTPayload, UserRead, UserUpdate
+from app.core.schemas import AccessTokenPayload, UserRead, UserUpdate
 
 from ..dependencies import (
+    access_token,
+    current_user,
     delete_user_by_id,
-    get_current_user,
-    get_jwt,
     update_user_by_id,
     users_repository,
 )
@@ -17,14 +17,14 @@ router = APIRouter()
 
 
 @router.get("/users/me", response_model=UserRead)
-def read_self(current_user: User = Depends(get_current_user)):
+def read_self(current_user: User = Depends(current_user)):
     return current_user
 
 
 @router.put("/users/me", response_model=UserRead)
 def update_self(
     user: UserUpdate,
-    jwt: JWTPayload = Depends(get_jwt),
+    jwt: AccessTokenPayload = Depends(access_token),
     users_repository: UsersRepository = Depends(users_repository),
 ):
     return update_user_by_id(
@@ -34,7 +34,7 @@ def update_self(
 
 @router.delete("/users/me", status_code=HTTP_204_NO_CONTENT)
 def delete_self(
-    jwt: JWTPayload = Depends(get_jwt),
+    jwt: AccessTokenPayload = Depends(access_token),
     users_repository: UsersRepository = Depends(users_repository),
 ):
     return delete_user_by_id(jwt.user_id, users_repository)

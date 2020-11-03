@@ -7,8 +7,8 @@ from starlette.status import HTTP_403_FORBIDDEN
 
 from app.core.models import User, UserRoles
 from app.core.repositories import UsersRepository
-from app.core.schemas import JWTPayload
-from app.core.services import JWTService
+from app.core.schemas import AccessTokenPayload
+from app.core.services import AccessTokenService
 from app.settings import Settings, get_settings
 
 from .repositories import find_user_by_id, users_repository
@@ -16,16 +16,18 @@ from .repositories import find_user_by_id, users_repository
 jwt_scheme = HTTPBearer(scheme_name="JWT")
 
 
-def jwt_service(settings: Settings = Depends(get_settings)):
-    return JWTService(settings)
+def access_token_service(
+    settings: Settings = Depends(get_settings),
+) -> AccessTokenService:
+    return AccessTokenService(settings)
 
 
-def get_jwt(
-    jwt_service: JWTService = Depends(jwt_service),
+def access_token(
+    access_token_service: AccessTokenService = Depends(access_token_service),
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
-) -> JWTPayload:
+) -> AccessTokenPayload:
     try:
-        return jwt_service.verify_token(header.credentials)
+        return access_token_service.verify_token(header.credentials)
     except Exception:
         logging.exception("Token verification raised exception")
         raise HTTPException(
@@ -33,8 +35,8 @@ def get_jwt(
         )
 
 
-def get_current_user(
-    jwt: JWTPayload = Depends(get_jwt),
+def current_user(
+    jwt: AccessTokenPayload = Depends(access_token),
     users_repository: UsersRepository = Depends(users_repository),
 ) -> User:
     return find_user_by_id(jwt.user_id, users_repository)
@@ -44,7 +46,7 @@ class WithRoles:
     def __init__(self, roles: List[UserRoles]):
         self._roles = set(roles)
 
-    def __call__(self, jwt: JWTPayload = Depends(get_jwt)):
+    def __call__(self, jwt: AccessTokenPayload = Depends(access_token)):
         if not self._roles.intersection(jwt.roles):
             role_values = [role.value for role in self._roles]
             raise HTTPException(
