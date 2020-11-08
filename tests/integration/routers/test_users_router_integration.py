@@ -24,13 +24,19 @@ def user(users_repository):
 
 @fixture
 def user_jwt(jwt_service, user):
-    return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+    jwt_payload = JWTPayload(
+        user_id=user.id, roles=user.roles, exp=JWTPayload.calc_exp(1)
+    )
+    return jwt_service.generate_token(jwt_payload.dict())
 
 
 @fixture
 def user_2_jwt(jwt_service, users_repository):
     user = users_repository.create(user_dict_2)
-    return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+    jwt_payload = JWTPayload(
+        user_id=user.id, roles=user.roles, exp=JWTPayload.calc_exp(1)
+    )
+    return jwt_service.generate_token(jwt_payload.dict())
 
 
 def list_users_request(client, jwt):

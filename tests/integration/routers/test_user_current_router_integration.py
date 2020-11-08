@@ -20,7 +20,10 @@ def user(users_repository):
 
 @fixture
 def user_jwt(jwt_service, user):
-    return jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+    jwt_payload = JWTPayload(
+        user_id=user.id, roles=user.roles, exp=JWTPayload.calc_exp(1)
+    )
+    return jwt_service.generate_token(jwt_payload.dict())
 
 
 def read_self_request(client, jwt):
@@ -54,7 +57,8 @@ def test_read_self_should_return_403_for_invalid_jwt(client):
 
 
 def test_read_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt = jwt_service.generate_token(JWTPayload(user_id=1, roles=[]))
+    jwt_payload = JWTPayload(user_id=1, roles=[], exp=JWTPayload.calc_exp(1))
+    jwt = jwt_service.generate_token(jwt_payload.dict())
     response = read_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
 
@@ -99,7 +103,8 @@ def test_update_self_should_return_403_for_invalid_jwt(client):
 
 
 def test_update_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt = jwt_service.generate_token(JWTPayload(user_id=1, roles=[]))
+    jwt_payload = JWTPayload(user_id=1, roles=[], exp=JWTPayload.calc_exp(1))
+    jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
 
@@ -108,7 +113,10 @@ def test_update_self_should_return_409_if_data_conflicts(
     client, jwt_service, user, users_repository
 ):
     users_repository.create(update_payload)
-    jwt = jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+    jwt_payload = JWTPayload(
+        user_id=user.id, roles=user.roles, exp=JWTPayload.calc_exp(1)
+    )
+    jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_self_request(client, jwt)
     assert response.status_code == HTTP_409_CONFLICT
 
@@ -142,6 +150,7 @@ def test_delete_self_should_return_403_for_invalid_jwt(client):
 
 
 def test_delete_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt = jwt_service.generate_token(JWTPayload(user_id=1, roles=[]))
+    jwt_payload = JWTPayload(user_id=1, roles=[], exp=JWTPayload.calc_exp(1))
+    jwt = jwt_service.generate_token(jwt_payload.dict())
     response = delete_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
