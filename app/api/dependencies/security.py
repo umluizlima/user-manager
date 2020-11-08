@@ -8,7 +8,7 @@ from starlette.status import HTTP_403_FORBIDDEN
 from app.core.models import User, UserRoles
 from app.core.repositories import UsersRepository
 from app.core.schemas import AccessTokenPayload
-from app.core.services import AccessTokenService
+from app.core.services import JWTService
 from app.settings import Settings, get_settings
 
 from .repositories import find_user_by_id, users_repository
@@ -16,18 +16,16 @@ from .repositories import find_user_by_id, users_repository
 jwt_scheme = HTTPBearer(scheme_name="JWT")
 
 
-def access_token_service(
-    settings: Settings = Depends(get_settings),
-) -> AccessTokenService:
-    return AccessTokenService(settings)
+def jwt_service(settings: Settings = Depends(get_settings)):
+    return JWTService(settings)
 
 
 def access_token(
-    access_token_service: AccessTokenService = Depends(access_token_service),
+    jwt_service: JWTService = Depends(jwt_service),
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
 ) -> AccessTokenPayload:
     try:
-        return access_token_service.verify_token(header.credentials)
+        return AccessTokenPayload(**jwt_service.verify_token(header.credentials))
     except Exception:
         logging.exception("Token verification raised exception")
         raise HTTPException(
