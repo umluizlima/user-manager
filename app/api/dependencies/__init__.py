@@ -5,6 +5,6 @@ from .repositories import (
     update_user_by_id,
     users_repository,
 )
-from .security import WithRoles, get_current_user, get_jwt, jwt_service
+from .security import WithRoles, access_token, current_user, jwt_service
 from .services import cache_adapter, cache_client, code_service
 from .tasks import send_code_producer
