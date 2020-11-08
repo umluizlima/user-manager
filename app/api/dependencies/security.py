@@ -25,7 +25,7 @@ def get_jwt(
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
 ) -> JWTPayload:
     try:
-        return jwt_service.verify_token(header.credentials)
+        return JWTPayload(**jwt_service.verify_token(header.credentials))
     except Exception:
         logging.exception("Token verification raised exception")
         raise HTTPException(

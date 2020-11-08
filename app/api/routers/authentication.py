@@ -12,6 +12,7 @@ from app.core.schemas import (
 )
 from app.core.services import CodeService, JWTService
 from app.core.tasks import SendCodeProducer
+from app.settings import Settings, get_settings
 
 from ..dependencies import (
     code_service,
@@ -51,6 +52,7 @@ def generate_access_code(
 )
 def generate_access_token(
     body: AccessTokenCreate,
+    settings: Settings = Depends(get_settings),
     users: UsersRepository = Depends(users_repository),
     code_service: CodeService = Depends(code_service),
     jwt_service: JWTService = Depends(jwt_service),
@@ -66,7 +68,12 @@ def generate_access_token(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
         )
-    jwt = jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
+    jwt_payload = JWTPayload(
+        user_id=user.id,
+        roles=user.roles,
+        exp=JWTPayload.calc_exp(settings.JWT_EXPIRATION_SECONDS),
+    )
+    jwt = jwt_service.generate_token(jwt_payload.dict())
     return AccessToken(access_token=jwt)
 
 
