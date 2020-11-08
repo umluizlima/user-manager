@@ -71,7 +71,7 @@ def generate_access_token(
     jwt_payload = AccessTokenPayload(
         user_id=user.id,
         roles=user.roles,
-        exp=AccessTokenPayload.calc_exp(settings.JWT_EXPIRATION_SECONDS),
+        exp=AccessTokenPayload.calc_exp(settings.ACCESS_TOKEN_EXPIRATION_SECONDS),
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     return AccessToken(access_token=jwt)
