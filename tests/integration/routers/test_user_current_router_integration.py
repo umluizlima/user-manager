@@ -7,7 +7,7 @@ from starlette.status import (
     HTTP_409_CONFLICT,
 )
 
-from app.core.schemas import JWTPayload, UserRead
+from app.core.schemas import AccessTokenPayload, UserRead
 
 user_dict = {"email": "email@domain.com"}
 update_payload = {"email": "new@email.com"}
@@ -20,8 +20,8 @@ def user(users_repository):
 
 @fixture
 def user_jwt(jwt_service, user):
-    jwt_payload = JWTPayload(
-        user_id=user.id, roles=user.roles, exp=JWTPayload.calc_exp(1)
+    jwt_payload = AccessTokenPayload(
+        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
     )
     return jwt_service.generate_token(jwt_payload.dict())
 
@@ -57,7 +57,9 @@ def test_read_self_should_return_403_for_invalid_jwt(client):
 
 
 def test_read_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt_payload = JWTPayload(user_id=1, roles=[], exp=JWTPayload.calc_exp(1))
+    jwt_payload = AccessTokenPayload(
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+    )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = read_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
@@ -103,7 +105,9 @@ def test_update_self_should_return_403_for_invalid_jwt(client):
 
 
 def test_update_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt_payload = JWTPayload(user_id=1, roles=[], exp=JWTPayload.calc_exp(1))
+    jwt_payload = AccessTokenPayload(
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+    )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND
@@ -113,8 +117,8 @@ def test_update_self_should_return_409_if_data_conflicts(
     client, jwt_service, user, users_repository
 ):
     users_repository.create(update_payload)
-    jwt_payload = JWTPayload(
-        user_id=user.id, roles=user.roles, exp=JWTPayload.calc_exp(1)
+    jwt_payload = AccessTokenPayload(
+        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_self_request(client, jwt)
@@ -150,7 +154,9 @@ def test_delete_self_should_return_403_for_invalid_jwt(client):
 
 
 def test_delete_self_should_return_404_if_user_does_not_exist(client, jwt_service):
-    jwt_payload = JWTPayload(user_id=1, roles=[], exp=JWTPayload.calc_exp(1))
+    jwt_payload = AccessTokenPayload(
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+    )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = delete_self_request(client, jwt)
     assert response.status_code == HTTP_404_NOT_FOUND

@@ -7,7 +7,7 @@ from app.core.schemas import (
     AccessCodeCreate,
     AccessToken,
     AccessTokenCreate,
-    JWTPayload,
+    AccessTokenPayload,
     UserCreate,
 )
 from app.core.services import CodeService, JWTService
@@ -68,10 +68,10 @@ def generate_access_token(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
         )
-    jwt_payload = JWTPayload(
+    jwt_payload = AccessTokenPayload(
         user_id=user.id,
         roles=user.roles,
-        exp=JWTPayload.calc_exp(settings.JWT_EXPIRATION_SECONDS),
+        exp=AccessTokenPayload.calc_exp(settings.JWT_EXPIRATION_SECONDS),
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     return AccessToken(access_token=jwt)

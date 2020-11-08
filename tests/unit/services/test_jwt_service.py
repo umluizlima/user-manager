@@ -1,7 +1,7 @@
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from pytest import fixture, raises
 
-from app.core.schemas import JWTPayload
+from app.core.schemas import AccessTokenPayload
 from app.core.services import JWTService
 
 
@@ -13,8 +13,8 @@ def jwt_service(rsa_keys, settings):
 
 
 @fixture
-def jwt_payload() -> JWTPayload:
-    return JWTPayload(user_id=123, roles=[], exp=JWTPayload.calc_exp(1))
+def jwt_payload() -> AccessTokenPayload:
+    return AccessTokenPayload(user_id=123, roles=[], exp=AccessTokenPayload.calc_exp(1))
 
 
 @fixture
