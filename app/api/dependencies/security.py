@@ -7,8 +7,8 @@ from starlette.status import HTTP_403_FORBIDDEN
 
 from app.core.models import User, UserRoles
 from app.core.repositories import UsersRepository
-from app.core.schemas import AccessTokenPayload
-from app.core.services import AccessTokenService
+from app.core.schemas import JWTPayload
+from app.core.services import JWTService
 from app.settings import Settings, get_settings
 
 from .repositories import find_user_by_id, users_repository
@@ -16,18 +16,16 @@ from .repositories import find_user_by_id, users_repository
 jwt_scheme = HTTPBearer(scheme_name="JWT")
 
 
-def access_token_service(
-    settings: Settings = Depends(get_settings),
-) -> AccessTokenService:
-    return AccessTokenService(settings)
+def jwt_service(settings: Settings = Depends(get_settings)):
+    return JWTService(settings)
 
 
-def access_token(
-    access_token_service: AccessTokenService = Depends(access_token_service),
+def get_jwt(
+    jwt_service: JWTService = Depends(jwt_service),
     header: HTTPAuthorizationCredentials = Security(jwt_scheme),
-) -> AccessTokenPayload:
+) -> JWTPayload:
     try:
-        return access_token_service.verify_token(header.credentials)
+        return jwt_service.verify_token(header.credentials)
     except Exception:
         logging.exception("Token verification raised exception")
         raise HTTPException(
@@ -35,8 +33,8 @@ def access_token(
         )
 
 
-def current_user(
-    jwt: AccessTokenPayload = Depends(access_token),
+def get_current_user(
+    jwt: JWTPayload = Depends(get_jwt),
     users_repository: UsersRepository = Depends(users_repository),
 ) -> User:
     return find_user_by_id(jwt.user_id, users_repository)
@@ -46,7 +44,7 @@ class WithRoles:
     def __init__(self, roles: List[UserRoles]):
         self._roles = set(roles)
 
-    def __call__(self, jwt: AccessTokenPayload = Depends(access_token)):
+    def __call__(self, jwt: JWTPayload = Depends(get_jwt)):
         if not self._roles.intersection(jwt.roles):
             role_values = [role.value for role in self._roles]
             raise HTTPException(

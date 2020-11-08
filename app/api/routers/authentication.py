@@ -7,15 +7,15 @@ from app.core.schemas import (
     AccessCodeCreate,
     AccessToken,
     AccessTokenCreate,
-    AccessTokenPayload,
+    JWTPayload,
     UserCreate,
 )
-from app.core.services import AccessTokenService, CodeService
+from app.core.services import CodeService, JWTService
 from app.core.tasks import SendCodeProducer
 
 from ..dependencies import (
-    access_token_service,
     code_service,
+    jwt_service,
     send_code_producer,
     users_repository,
 )
@@ -53,7 +53,7 @@ def generate_access_token(
     body: AccessTokenCreate,
     users: UsersRepository = Depends(users_repository),
     code_service: CodeService = Depends(code_service),
-    access_token_service: AccessTokenService = Depends(access_token_service),
+    jwt_service: JWTService = Depends(jwt_service),
 ):
     user = None
     try:
@@ -66,9 +66,7 @@ def generate_access_token(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
         )
-    jwt = access_token_service.generate_token(
-        AccessTokenPayload(user_id=user.id, roles=user.roles)
-    )
+    jwt = jwt_service.generate_token(JWTPayload(user_id=user.id, roles=user.roles))
     return AccessToken(access_token=jwt)
 
 
