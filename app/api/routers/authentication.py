@@ -10,12 +10,12 @@ from app.core.schemas import (
     AccessTokenPayload,
     UserCreate,
 )
-from app.core.services import CodeService, JWTService
+from app.core.services import AccessCodeService, JWTService
 from app.core.tasks import SendCodeProducer
 from app.settings import Settings, get_settings
 
 from ..dependencies import (
-    code_service,
+    access_code_service,
     jwt_service,
     send_code_producer,
     users_repository,
@@ -28,7 +28,7 @@ router = APIRouter()
 def generate_access_code(
     body: AccessCodeCreate,
     users: UsersRepository = Depends(users_repository),
-    code_service: CodeService = Depends(code_service),
+    access_code_service: AccessCodeService = Depends(access_code_service),
     producer: SendCodeProducer = Depends(send_code_producer),
 ):
     user = None
@@ -41,7 +41,7 @@ def generate_access_code(
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND, detail="User not registered"
         )
-    code = code_service.generate_code(f"access_code:{user.id}")
+    code = access_code_service.generate_code(user.id)
     producer.send_code(code, user.email)
 
 
@@ -54,7 +54,7 @@ def generate_access_token(
     body: AccessTokenCreate,
     settings: Settings = Depends(get_settings),
     users: UsersRepository = Depends(users_repository),
-    code_service: CodeService = Depends(code_service),
+    access_code_service: AccessCodeService = Depends(access_code_service),
     jwt_service: JWTService = Depends(jwt_service),
 ):
     user = None
@@ -64,7 +64,7 @@ def generate_access_token(
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND, detail="User not registered"
         )
-    if not code_service.verify_code(f"access_code:{user.id}", body.code):
+    if not access_code_service.verify_code(user.id, body.code):
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
         )
