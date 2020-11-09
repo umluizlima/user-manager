@@ -1,3 +1,4 @@
+from sys import maxsize
 from typing import Optional
 
 from redis import Redis
@@ -16,3 +17,15 @@ class CacheAdapter:
 
     def delete(self, key: str):
         self._client.delete(key)
+
+    def add_to_set(self, key: str, value: str):
+        self._client.sadd(key, value)
+
+    def is_in_set(self, key: str, value: str) -> bool:
+        return bool(self._client.sismember(key, value))
+
+    def remove_from_set(self, key: str, value: str):
+        self._client.srem(key, value)
+
+    def empty_set(self, key: str):
+        self._client.spop(key, maxsize)
