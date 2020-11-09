@@ -1,6 +1,7 @@
 from starlette.status import HTTP_202_ACCEPTED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from app.core.schemas import AccessCodeCreate, AccessToken, AccessTokenCreate
+from app.core.services import AccessCodeService
 
 code = "123456"
 access_code_body_1 = AccessCodeCreate(email="email@domain.com", create_user=False)
@@ -35,7 +36,10 @@ def test_generate_access_code_should_send_code_if_user_exists(
     user = users_repository.create({"email": access_code_body_1.email})
     generate_access_code_request(client, access_code_body_1.dict())
     send_code_producer_mock.send_code.assert_called_once_with(
-        cache_client.get(f"access_code:{user.id}").decode("utf-8"), user.email
+        cache_client.get(AccessCodeService._get_access_code_key(user.id)).decode(
+            "utf-8"
+        ),
+        user.email,
     )
 
 
@@ -47,7 +51,9 @@ def test_generate_access_token_should_return_status_202(
     client, cache_adapter, users_repository
 ):
     user = users_repository.create({"email": access_code_body_1.email})
-    cache_adapter.set_with_expiration(f"access_code:{user.id}", 1, code)
+    cache_adapter.set_with_expiration(
+        AccessCodeService._get_access_code_key(user.id), 1, code
+    )
     response = generate_access_token_request(client, access_token_body.dict())
     assert response.status_code == HTTP_202_ACCEPTED
 
@@ -56,7 +62,9 @@ def test_generate_access_token_should_return_token(
     client, cache_adapter, users_repository
 ):
     user = users_repository.create({"email": access_code_body_1.email})
-    cache_adapter.set_with_expiration(f"access_code:{user.id}", 1, code)
+    cache_adapter.set_with_expiration(
+        AccessCodeService._get_access_code_key(user.id), 1, code
+    )
     response = generate_access_token_request(client, access_token_body.dict())
     assert AccessToken(**response.json())
 
