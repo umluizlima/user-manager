@@ -6,5 +6,5 @@ from .repositories import (
     users_repository,
 )
 from .security import WithRoles, access_token, current_user, jwt_service
-from .services import cache_adapter, cache_client, code_service
+from .services import access_code_service, cache_adapter, cache_client
 from .tasks import send_code_producer
