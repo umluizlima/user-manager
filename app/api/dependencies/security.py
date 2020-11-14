@@ -1,9 +1,8 @@
 import logging
 from typing import List
 
-from fastapi import Depends, HTTPException, Security
+from fastapi import Depends, Security
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
-from starlette.status import HTTP_403_FORBIDDEN
 
 from app.core.models import User, UserRoles
 from app.core.repositories import UsersRepository
@@ -11,6 +10,7 @@ from app.core.schemas import AccessTokenPayload
 from app.core.services import JWTService
 from app.settings import Settings, get_settings
 
+from .errors import raise_forbidden
 from .repositories import find_user_by_id, users_repository
 
 jwt_scheme = HTTPBearer(scheme_name="JWT")
@@ -28,9 +28,7 @@ def access_token(
         return AccessTokenPayload(**jwt_service.verify_token(header.credentials))
     except Exception:
         logging.exception("Token verification raised exception")
-        raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
-        )
+        raise_forbidden("Invalid access token")
 
 
 def current_user(
@@ -47,7 +45,4 @@ class WithRoles:
     def __call__(self, jwt: AccessTokenPayload = Depends(access_token)):
         if not self._roles.intersection(jwt.roles):
             role_values = [role.value for role in self._roles]
-            raise HTTPException(
-                status_code=HTTP_403_FORBIDDEN,
-                detail=f"User lacks required roles: {role_values}",
-            )
+            raise_forbidden(f"User lacks required roles: {role_values}")
