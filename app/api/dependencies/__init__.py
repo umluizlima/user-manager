@@ -1,4 +1,10 @@
-from .errors import raise_conflict, raise_forbidden, raise_not_found, raise_unauthorized
+from .errors import (
+    raise_bad_request,
+    raise_conflict,
+    raise_forbidden,
+    raise_not_found,
+    raise_unauthorized,
+)
 from .repositories import (
     db_session,
     delete_user_by_id,

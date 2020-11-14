@@ -1,5 +1,6 @@
 from fastapi.exceptions import HTTPException
 from starlette.status import (
+    HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
@@ -9,6 +10,10 @@ from starlette.status import (
 
 def raise_http_exception(status_code: int, detail: str):
     raise HTTPException(status_code, detail)
+
+
+def raise_bad_request(detail: str):
+    raise_http_exception(HTTP_400_BAD_REQUEST, detail)
 
 
 def raise_unauthorized(detail: str):
