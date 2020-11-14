@@ -1,7 +1,7 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_409_CONFLICT
+from fastapi import APIRouter, Depends
+from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from app.core.errors import ResourceAlreadyExistsError
 from app.core.models import UserRoles
@@ -12,6 +12,7 @@ from ..dependencies import (
     WithRoles,
     delete_user_by_id,
     find_user_by_id,
+    raise_conflict,
     update_user_by_id,
     users_repository,
 )
@@ -26,7 +27,7 @@ def create_user(
     try:
         return users_repository.create(user.dict())
     except ResourceAlreadyExistsError:
-        raise HTTPException(status_code=HTTP_409_CONFLICT, detail="User already exists")
+        raise_conflict("User already exists")
 
 
 @router.get("/users", response_model=List[UserRead])

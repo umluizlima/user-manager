@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from starlette.status import HTTP_202_ACCEPTED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from fastapi import APIRouter, Depends
+from starlette.status import HTTP_202_ACCEPTED
 
 from app.core.errors import ResourceNotFoundError
 from app.core.repositories import UsersRepository
@@ -17,6 +17,8 @@ from app.settings import Settings, get_settings
 from ..dependencies import (
     access_code_service,
     jwt_service,
+    raise_bad_request,
+    raise_not_found,
     send_code_producer,
     users_repository,
 )
@@ -38,9 +40,7 @@ def generate_access_code(
         if body.create_user:
             user = users.create(UserCreate(email=body.email).dict())
     if not user:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail="User not registered"
-        )
+        raise_not_found("User not registered")
     code = access_code_service.generate_code(user.id)
     producer.send_code(code, user.email)
 
@@ -61,13 +61,9 @@ def generate_access_token(
     try:
         user = users.find_by_email(body.email)
     except ResourceNotFoundError:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail="User not registered"
-        )
+        raise_not_found("User not registered")
     if not access_code_service.verify_code(user.id, body.code):
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST, detail="Invalid access code"
-        )
+        raise_bad_request("Invalid access code")
     jwt_payload = AccessTokenPayload(
         user_id=user.id,
         roles=user.roles,
