@@ -28,11 +28,11 @@ def test_session_service_should_store_session_in_cache(session_service):
 
 def test_session_service_should_verify_valid_session(session_service):
     session = session_service.generate_session(user_id)
-    assert session_service.verify_session(user_id, session)
+    assert session_service.verify_session(session) == user_id
 
 
 def test_session_service_should_not_verify_invalid_session(session_service):
-    assert not session_service.verify_session(user_id, "abcdef")
+    assert not session_service.verify_session("abcdef")
 
 
 def test_session_service_should_not_verify_expired_session(cache_adapter, settings):
@@ -40,7 +40,7 @@ def test_session_service_should_not_verify_expired_session(cache_adapter, settin
     session_service = SessionService(settings, cache_adapter)
     session = session_service.generate_session(user_id)
     sleep(1.001)
-    assert not session_service.verify_session(user_id, session)
+    assert not session_service.verify_session(session)
 
 
 def test_session_service_should_revoke_single_session(cache_adapter, session_service):

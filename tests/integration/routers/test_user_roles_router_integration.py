@@ -1,5 +1,10 @@
 from pytest import fixture
-from starlette.status import HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
+from starlette.status import (
+    HTTP_200_OK,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
+)
 
 from app.core.models import UserRoles
 from app.core.schemas import AccessTokenPayload, UserRead
@@ -52,9 +57,9 @@ def test_update_user_roles_should_update_roles(update_user_roles_response, user)
     assert UserRead(**update_user_roles_response.json()).roles == update_roles
 
 
-def test_update_user_roles_should_return_403_for_invalid_jwt(client):
+def test_update_user_roles_should_return_401_for_invalid_jwt(client):
     response = update_user_roles_request(client, 123, 123, [])
-    assert response.status_code == HTTP_403_FORBIDDEN
+    assert response.status_code == HTTP_401_UNAUTHORIZED
 
 
 def test_update_user_should_return_403_for_non_admin(client, jwt_service):
