@@ -13,14 +13,14 @@ class TokenType(str, Enum):
 
 
 class BaseJWTPayload(BaseModel):
-    exp: float
+    exp: int
     jti: str = str(uuid4())
-    nbf: float = time()
+    nbf: int = int(time())
     token_type: TokenType
 
     @staticmethod
-    def calc_exp(seconds_from_now: int = 0) -> float:
-        return time() + seconds_from_now
+    def calc_exp(seconds_from_now: int = 0) -> int:
+        return int(time()) + seconds_from_now
 
 
 class AccessTokenPayload(BaseJWTPayload):
