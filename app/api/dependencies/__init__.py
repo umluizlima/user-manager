@@ -8,6 +8,7 @@ from .errors import (
 from .repositories import (
     db_session,
     delete_user_by_id,
+    find_user_by_email,
     find_user_by_id,
     update_user_by_id,
     users_repository,
