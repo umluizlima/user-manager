@@ -12,6 +12,12 @@ from .repositories import (
     update_user_by_id,
     users_repository,
 )
-from .security import WithRoles, access_token, current_user, jwt_service
-from .services import access_code_service, cache_adapter, cache_client
+from .security import WithRoles, access_token, current_user
+from .services import (
+    access_code_service,
+    cache_adapter,
+    cache_client,
+    jwt_service,
+    session_service,
+)
 from .tasks import send_code_producer

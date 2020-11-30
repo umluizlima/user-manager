@@ -26,24 +26,26 @@ def users_repository(db: Session = Depends(db_session)) -> UsersRepository:
     return UsersRepository(db)
 
 
-def find_user_by_id(user_id: int, users: UsersRepository) -> User:
+def find_user_by_id(user_id: int, users_repository: UsersRepository) -> User:
     try:
-        return users.find_by_id(user_id)
+        return users_repository.find_by_id(user_id)
     except ResourceNotFoundError:
         raise_user_not_found()
 
 
-def update_user_by_id(user_id: int, user: Dict, users: UsersRepository) -> User:
+def update_user_by_id(
+    user_id: int, user: Dict, users_repository: UsersRepository
+) -> User:
     try:
-        return users.update_by_id(user_id, user)
+        return users_repository.update_by_id(user_id, user)
     except ResourceNotFoundError:
         raise_user_not_found()
     except ResourceAlreadyExistsError:
         raise_conflict("User with data already exists")
 
 
-def delete_user_by_id(user_id: int, users: UsersRepository):
+def delete_user_by_id(user_id: int, users_repository: UsersRepository):
     try:
-        return users.delete_by_id(user_id)
+        return users_repository.delete_by_id(user_id)
     except ResourceNotFoundError:
         raise_user_not_found()

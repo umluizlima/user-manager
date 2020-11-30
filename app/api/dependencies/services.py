@@ -2,7 +2,7 @@ from fastapi import Depends
 
 from app.core.adapters import CacheAdapter
 from app.core.cache import get_cache_client
-from app.core.services import AccessCodeService
+from app.core.services import AccessCodeService, JWTService, SessionService
 from app.settings import Settings, get_settings
 
 
@@ -19,3 +19,14 @@ def access_code_service(
     cache_adapter: CacheAdapter = Depends(cache_adapter),
 ):
     return AccessCodeService(settings, cache_adapter)
+
+
+def jwt_service(settings: Settings = Depends(get_settings)):
+    return JWTService(settings)
+
+
+def session_service(
+    settings: Settings = Depends(get_settings),
+    cache_adapter: CacheAdapter = Depends(cache_adapter),
+):
+    return SessionService(settings, cache_adapter)
