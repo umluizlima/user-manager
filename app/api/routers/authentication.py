@@ -6,8 +6,8 @@ from app.core.repositories import UsersRepository
 from app.core.schemas import (
     AccessCodeCreate,
     AccessToken,
-    AccessTokenCreate,
     AccessTokenPayload,
+    RefreshTokenCreate,
     UserCreate,
 )
 from app.core.services import AccessCodeService, JWTService
@@ -51,7 +51,7 @@ def generate_access_code(
     status_code=HTTP_202_ACCEPTED,
 )
 def generate_access_token(
-    body: AccessTokenCreate,
+    body: RefreshTokenCreate,
     settings: Settings = Depends(get_settings),
     users: UsersRepository = Depends(users_repository),
     access_code_service: AccessCodeService = Depends(access_code_service),

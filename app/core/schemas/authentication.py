@@ -6,7 +6,7 @@ class AccessCodeCreate(BaseModel):
     create_user: bool = False
 
 
-class AccessTokenCreate(BaseModel):
+class RefreshTokenCreate(BaseModel):
     email: EmailStr
     code: str
 

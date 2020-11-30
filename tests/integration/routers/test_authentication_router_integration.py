@@ -1,12 +1,12 @@
 from starlette.status import HTTP_202_ACCEPTED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from app.core.schemas import AccessCodeCreate, AccessToken, AccessTokenCreate
+from app.core.schemas import AccessCodeCreate, AccessToken, RefreshTokenCreate
 from app.core.services import AccessCodeService
 
 code = "123456"
 access_code_body_1 = AccessCodeCreate(email="email@domain.com", create_user=False)
 access_code_body_2 = AccessCodeCreate(email="anotheremail@domain.com", create_user=True)
-access_token_body = AccessTokenCreate(email="email@domain.com", code=code)
+access_token_body = RefreshTokenCreate(email="email@domain.com", code=code)
 
 
 def generate_access_code_request(client, payload):
