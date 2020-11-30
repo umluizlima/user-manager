@@ -19,14 +19,13 @@ class SessionService:
         )
         return session_id
 
-    def verify_session(self, user_id: int, session_id: str) -> bool:
-        if not self._cache_adapter.is_in_set(
+    def verify_session(self, session_id: str) -> int:
+        user_id = self._cache_adapter.get(self._get_session_key(session_id))
+        if not user_id or not self._cache_adapter.is_in_set(
             self._get_sessions_key(user_id), session_id,
         ):
-            return False
-        return self._cache_adapter.get(self._get_session_key(session_id)) == str(
-            user_id
-        )
+            return
+        return int(user_id)
 
     def revoke_session(self, user_id: int, session_id: str):
         self._cache_adapter.remove_from_set(self._get_sessions_key(user_id), session_id)
