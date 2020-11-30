@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
-from starlette.status import HTTP_201_CREATED, HTTP_202_ACCEPTED
+from starlette.status import HTTP_201_CREATED
 
-from app.core.errors import ResourceNotFoundError
+from app.core.models import User
 from app.core.repositories import UsersRepository
 from app.core.schemas import (
     AccessCodeCreate,
     AccessToken,
     AccessTokenPayload,
-    RefreshTokenCreate,
     UserCreate,
 )
 from app.core.services import AccessCodeService, JWTService
@@ -16,10 +15,9 @@ from app.settings import Settings, get_settings
 
 from ..dependencies import (
     access_code_service,
+    access_code_user,
     find_user_by_email,
     jwt_service,
-    raise_bad_request,
-    raise_not_found,
     send_code_producer,
     users_repository,
 )
@@ -45,31 +43,20 @@ def generate_access_code(
 
 
 @router.post(
-    "/authentication/access-token",
-    response_model=AccessToken,
-    status_code=HTTP_202_ACCEPTED,
+    "/authentication/token", response_model=AccessToken, status_code=HTTP_201_CREATED,
 )
 def generate_access_token(
-    body: RefreshTokenCreate,
-    settings: Settings = Depends(get_settings),
-    users: UsersRepository = Depends(users_repository),
-    access_code_service: AccessCodeService = Depends(access_code_service),
+    access_code_user: User = Depends(access_code_user),
     jwt_service: JWTService = Depends(jwt_service),
+    settings: Settings = Depends(get_settings),
 ):
-    user = None
-    try:
-        user = users.find_by_email(body.email)
-    except ResourceNotFoundError:
-        raise_not_found("User not registered")
-    if not access_code_service.verify_code(user.id, body.code):
-        raise_bad_request("Invalid access code")
-    jwt_payload = AccessTokenPayload(
-        user_id=user.id,
-        roles=user.roles,
+    payload = AccessTokenPayload(
+        user_id=access_code_user.id,
+        roles=access_code_user.roles,
         exp=AccessTokenPayload.calc_exp(settings.ACCESS_TOKEN_EXPIRATION_SECONDS),
     )
-    jwt = jwt_service.generate_token(jwt_payload.dict())
-    return AccessToken(access_token=jwt)
+    token = jwt_service.generate_token(payload.dict())
+    return AccessToken(access_token=token)
 
 
 def configure(app, settings):

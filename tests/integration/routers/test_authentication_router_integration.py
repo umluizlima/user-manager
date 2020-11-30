@@ -1,9 +1,4 @@
-from starlette.status import (
-    HTTP_201_CREATED,
-    HTTP_202_ACCEPTED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-)
+from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
 
 from app.core.schemas import AccessCodeCreate, AccessToken, RefreshTokenCreate
 from app.core.services import AccessCodeService
@@ -49,10 +44,10 @@ def test_generate_access_code_should_send_code_if_user_exists(
 
 
 def generate_access_token_request(client, payload):
-    return client.post("/api/v1/authentication/access-token", json=payload)
+    return client.post("/api/v1/authentication/token", json=payload)
 
 
-def test_generate_access_token_should_return_status_202(
+def test_generate_access_token_should_return_status_201(
     client, cache_adapter, users_repository
 ):
     user = users_repository.create({"email": access_code_body_1.email})
@@ -60,7 +55,7 @@ def test_generate_access_token_should_return_status_202(
         AccessCodeService._get_access_code_key(user.id), 1, code
     )
     response = generate_access_token_request(client, access_token_body.dict())
-    assert response.status_code == HTTP_202_ACCEPTED
+    assert response.status_code == HTTP_201_CREATED
 
 
 def test_generate_access_token_should_return_token(
@@ -84,4 +79,4 @@ def test_generate_access_token_should_return_status_400_if_code_is_invalid(
 ):
     users_repository.create({"email": access_code_body_1.email})
     response = generate_access_token_request(client, access_token_body.dict())
-    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.status_code == HTTP_401_UNAUTHORIZED
