@@ -26,7 +26,10 @@ def user(users_repository):
 @fixture
 def user_jwt(jwt_service, user):
     jwt_payload = AccessTokenPayload(
-        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
+        user_id=user.id,
+        roles=user.roles,
+        exp=AccessTokenPayload.calc_exp(1),
+        sid="123456",
     )
     return jwt_service.generate_token(jwt_payload.dict())
 
@@ -35,7 +38,10 @@ def user_jwt(jwt_service, user):
 def user_2_jwt(jwt_service, users_repository):
     user = users_repository.create(user_dict_2)
     jwt_payload = AccessTokenPayload(
-        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
+        user_id=user.id,
+        roles=user.roles,
+        exp=AccessTokenPayload.calc_exp(1),
+        sid="123456",
     )
     return jwt_service.generate_token(jwt_payload.dict())
 

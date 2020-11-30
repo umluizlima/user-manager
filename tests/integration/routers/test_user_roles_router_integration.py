@@ -21,7 +21,10 @@ def user(users_repository):
 @fixture
 def user_jwt(jwt_service, user):
     jwt_payload = AccessTokenPayload(
-        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
+        user_id=user.id,
+        roles=user.roles,
+        exp=AccessTokenPayload.calc_exp(1),
+        sid="123456",
     )
     return jwt_service.generate_token(jwt_payload.dict())
 
@@ -64,7 +67,7 @@ def test_update_user_roles_should_return_401_for_invalid_jwt(client):
 
 def test_update_user_should_return_403_for_non_admin(client, jwt_service):
     jwt_payload = AccessTokenPayload(
-        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1), sid="123456",
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_user_roles_request(client, 1, jwt, [])
@@ -75,7 +78,10 @@ def test_update_user_roles_should_return_404_if_user_does_not_exist(
     client, jwt_service
 ):
     jwt_payload = AccessTokenPayload(
-        user_id=1, roles=[UserRoles.ADMIN], exp=AccessTokenPayload.calc_exp(1)
+        user_id=1,
+        roles=[UserRoles.ADMIN],
+        exp=AccessTokenPayload.calc_exp(1),
+        sid="123456",
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_user_roles_request(client, 1, jwt, [])

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from starlette.status import HTTP_201_CREATED
 
 from app.core.models import User
@@ -7,9 +7,10 @@ from app.core.schemas import (
     AccessCodeCreate,
     AccessToken,
     AccessTokenPayload,
+    RefreshTokenPayload,
     UserCreate,
 )
-from app.core.services import AccessCodeService, JWTService
+from app.core.services import AccessCodeService, JWTService, SessionService
 from app.core.tasks import SendCodeProducer
 from app.settings import Settings, get_settings
 
@@ -19,6 +20,7 @@ from ..dependencies import (
     find_user_by_email,
     jwt_service,
     send_code_producer,
+    session_service,
     users_repository,
 )
 
@@ -45,18 +47,24 @@ def generate_access_code(
 @router.post(
     "/authentication/token", response_model=AccessToken, status_code=HTTP_201_CREATED,
 )
-def generate_access_token(
+def generate_refresh_token(
+    response: Response,
     access_code_user: User = Depends(access_code_user),
     jwt_service: JWTService = Depends(jwt_service),
+    session_service: SessionService = Depends(session_service),
     settings: Settings = Depends(get_settings),
 ):
-    payload = AccessTokenPayload(
-        user_id=access_code_user.id,
-        roles=access_code_user.roles,
-        exp=AccessTokenPayload.calc_exp(settings.ACCESS_TOKEN_EXPIRATION_SECONDS),
+    session_id = session_service.generate_session(access_code_user.id)
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, session_id,
     )
-    token = jwt_service.generate_token(payload.dict())
-    return AccessToken(access_token=token)
+    refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
+    access_token_payload = AccessTokenPayload.from_info(
+        settings.ACCESS_TOKEN_EXPIRATION_SECONDS, session_id, access_code_user,
+    )
+    access_token = jwt_service.generate_token(access_token_payload.dict())
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
+    return AccessToken(access_token=access_token)
 
 
 def configure(app, settings):
