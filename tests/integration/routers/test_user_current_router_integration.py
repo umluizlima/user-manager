@@ -2,7 +2,7 @@ from pytest import fixture
 from starlette.status import (
     HTTP_200_OK,
     HTTP_204_NO_CONTENT,
-    HTTP_403_FORBIDDEN,
+    HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
 )
@@ -51,9 +51,9 @@ def test_read_self_should_return_same_user(read_self_response, user):
     assert UserRead(**read_self_response.json()) == UserRead.from_orm(user)
 
 
-def test_read_self_should_return_403_for_invalid_jwt(client):
+def test_read_self_should_return_401_for_invalid_jwt(client):
     response = read_self_request(client, 123)
-    assert response.status_code == HTTP_403_FORBIDDEN
+    assert response.status_code == HTTP_401_UNAUTHORIZED
 
 
 def test_read_self_should_return_404_if_user_does_not_exist(client, jwt_service):
@@ -99,9 +99,9 @@ def test_update_self_should_follow_schema(client, user_jwt):
     assert UserRead(**response.json()).roles == []
 
 
-def test_update_self_should_return_403_for_invalid_jwt(client):
+def test_update_self_should_return_401_for_invalid_jwt(client):
     response = update_self_request(client, 123)
-    assert response.status_code == HTTP_403_FORBIDDEN
+    assert response.status_code == HTTP_401_UNAUTHORIZED
 
 
 def test_update_self_should_return_404_if_user_does_not_exist(client, jwt_service):
@@ -148,9 +148,9 @@ def test_delete_self_should_delete_user(delete_self_response, users_repository):
     assert len(users_repository.find_all()) == 0
 
 
-def test_delete_self_should_return_403_for_invalid_jwt(client):
+def test_delete_self_should_return_401_for_invalid_jwt(client):
     response = delete_self_request(client, 123)
-    assert response.status_code == HTTP_403_FORBIDDEN
+    assert response.status_code == HTTP_401_UNAUTHORIZED
 
 
 def test_delete_self_should_return_404_if_user_does_not_exist(client, jwt_service):
