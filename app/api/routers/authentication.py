@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends
-from starlette.status import HTTP_202_ACCEPTED
+from fastapi import APIRouter, Depends, HTTPException
+from starlette.status import HTTP_201_CREATED, HTTP_202_ACCEPTED
 
 from app.core.errors import ResourceNotFoundError
 from app.core.repositories import UsersRepository
@@ -16,6 +16,7 @@ from app.settings import Settings, get_settings
 
 from ..dependencies import (
     access_code_service,
+    find_user_by_email,
     jwt_service,
     raise_bad_request,
     raise_not_found,
@@ -26,21 +27,19 @@ from ..dependencies import (
 router = APIRouter()
 
 
-@router.post("/authentication/access-code", status_code=HTTP_202_ACCEPTED)
+@router.post("/authentication/code", status_code=HTTP_201_CREATED)
 def generate_access_code(
     body: AccessCodeCreate,
-    users: UsersRepository = Depends(users_repository),
     access_code_service: AccessCodeService = Depends(access_code_service),
     producer: SendCodeProducer = Depends(send_code_producer),
+    users_repository: UsersRepository = Depends(users_repository),
 ):
-    user = None
     try:
-        user = users.find_by_email(body.email)
-    except ResourceNotFoundError:
-        if body.create_user:
-            user = users.create(UserCreate(email=body.email).dict())
-    if not user:
-        raise_not_found("User not registered")
+        user = find_user_by_email(body.email, users_repository)
+    except HTTPException as error:
+        if not body.create_user:
+            raise error
+        user = users_repository.create(UserCreate(email=body.email).dict())
     code = access_code_service.generate_code(user.id)
     producer.send_code(code, user.email)
 

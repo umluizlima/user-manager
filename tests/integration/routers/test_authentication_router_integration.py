@@ -1,4 +1,9 @@
-from starlette.status import HTTP_202_ACCEPTED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from starlette.status import (
+    HTTP_201_CREATED,
+    HTTP_202_ACCEPTED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+)
 
 from app.core.schemas import AccessCodeCreate, AccessToken, RefreshTokenCreate
 from app.core.services import AccessCodeService
@@ -10,13 +15,13 @@ access_token_body = RefreshTokenCreate(email="email@domain.com", code=code)
 
 
 def generate_access_code_request(client, payload):
-    return client.post("/api/v1/authentication/access-code", json=payload)
+    return client.post("/api/v1/authentication/code", json=payload)
 
 
-def test_generate_access_code_should_return_status_202(client, users_repository):
+def test_generate_access_code_should_return_status_201(client, users_repository):
     users_repository.create({"email": access_code_body_1.email})
     response = generate_access_code_request(client, access_code_body_1.dict())
-    assert response.status_code == HTTP_202_ACCEPTED
+    assert response.status_code == HTTP_201_CREATED
 
 
 def test_generate_access_code_should_return_status_404_if_user_is_not_found(client):
