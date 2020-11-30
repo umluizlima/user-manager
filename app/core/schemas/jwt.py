@@ -10,6 +10,7 @@ from app.core.models import UserRoles
 
 class TokenType(str, Enum):
     ACCESS = "access"
+    REFRESH = "refresh"
 
 
 class BaseJWTPayload(BaseModel):
@@ -27,3 +28,8 @@ class AccessTokenPayload(BaseJWTPayload):
     roles: List[UserRoles]
     token_type: TokenType = TokenType.ACCESS
     user_id: int
+
+
+class RefreshTokenPayload(BaseJWTPayload):
+    jti = str
+    token_type: TokenType = TokenType.REFRESH
