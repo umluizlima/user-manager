@@ -1,11 +1,11 @@
 from typing import List
 
-from fastapi import Depends, Security
+from fastapi import Cookie, Depends, Security
 from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.models import User, UserRoles
 from app.core.repositories import UsersRepository
-from app.core.schemas import AccessTokenPayload, RefreshTokenCreate
+from app.core.schemas import AccessTokenPayload, RefreshTokenCreate, RefreshTokenPayload
 from app.core.services import AccessCodeService, JWTService
 
 from .errors import raise_forbidden, raise_unauthorized
@@ -47,6 +47,25 @@ def current_user(
     users_repository: UsersRepository = Depends(users_repository),
 ) -> User:
     return find_user_by_id(access_token.user_id, users_repository)
+
+
+def refresh_token_cookie(
+    token: str = Cookie(alias="refresh_token", default=None),
+) -> str:
+    if not token:
+        raise_unauthorized("Missing refresh_token cookie")
+    return token
+
+
+def refresh_token(
+    jwt_service: JWTService = Depends(jwt_service),
+    token: str = Depends(refresh_token_cookie),
+) -> RefreshTokenPayload:
+    try:
+        payload = RefreshTokenPayload(**jwt_service.verify_token(token))
+    except Exception:
+        raise_unauthorized("Invalid refresh token")
+    return payload
 
 
 class WithRoles:

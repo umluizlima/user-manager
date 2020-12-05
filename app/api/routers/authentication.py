@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from starlette.status import HTTP_201_CREATED
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 
 from app.core.models import User
 from app.core.repositories import UsersRepository
@@ -18,7 +18,10 @@ from ..dependencies import (
     access_code_service,
     access_code_user,
     find_user_by_email,
+    find_user_by_id,
     jwt_service,
+    raise_unauthorized,
+    refresh_token,
     send_code_producer,
     session_service,
     users_repository,
@@ -63,8 +66,34 @@ def generate_refresh_token(
         settings.ACCESS_TOKEN_EXPIRATION_SECONDS, session_id, access_code_user,
     )
     access_token = jwt_service.generate_token(access_token_payload.dict())
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        expires=settings.SESSION_EXPIRATION_SECONDS,
+    )
     return AccessToken(access_token=access_token)
+
+
+@router.get(
+    "/authentication/token", response_model=AccessToken, status_code=HTTP_200_OK,
+)
+def generate_access_token(
+    jwt_service: JWTService = Depends(jwt_service),
+    refresh_token: RefreshTokenPayload = Depends(refresh_token),
+    session_service: SessionService = Depends(session_service),
+    settings: Settings = Depends(get_settings),
+    users_repository: UsersRepository = Depends(users_repository),
+):
+    user_id = session_service.verify_session(refresh_token.jti)
+    if not user_id:
+        raise_unauthorized("Invalid session")
+    user = find_user_by_id(user_id, users_repository)
+    payload = AccessTokenPayload.from_info(
+        settings.ACCESS_TOKEN_EXPIRATION_SECONDS, refresh_token.jti, user,
+    )
+    token = jwt_service.generate_token(payload.dict())
+    return AccessToken(access_token=token)
 
 
 def configure(app, settings):
