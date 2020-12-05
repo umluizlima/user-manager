@@ -3,9 +3,17 @@ from time import time
 from typing import List
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core.models import User, UserRoles
+
+
+def uuid_str() -> str:
+    return str(uuid4())
+
+
+def time_int() -> int:
+    return int(time())
 
 
 class TokenType(str, Enum):
@@ -15,8 +23,8 @@ class TokenType(str, Enum):
 
 class BaseJWTPayload(BaseModel):
     exp: int
-    jti: str = str(uuid4())
-    nbf: int = int(time())
+    jti: str = Field(default_factory=uuid_str)
+    nbf: int = Field(default_factory=time_int)
     token_type: TokenType
 
     @staticmethod
