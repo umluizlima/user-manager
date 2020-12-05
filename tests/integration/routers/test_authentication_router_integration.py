@@ -1,6 +1,17 @@
-from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
+from pytest import fixture
+from starlette.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_404_NOT_FOUND,
+)
 
-from app.core.schemas import AccessCodeCreate, AccessToken, RefreshTokenCreate
+from app.core.schemas import (
+    AccessCodeCreate,
+    AccessToken,
+    RefreshTokenCreate,
+    RefreshTokenPayload,
+)
 from app.core.services import AccessCodeService
 
 code = "123456"
@@ -43,40 +54,119 @@ def test_generate_access_code_should_send_code_if_user_exists(
     )
 
 
-def generate_access_token_request(client, payload):
+def generate_refresh_token_request(client, payload):
     return client.post("/api/v1/authentication/token", json=payload)
 
 
-def test_generate_access_token_should_return_status_201(
+def test_generate_refresh_token_should_return_status_201(
     client, cache_adapter, users_repository
 ):
     user = users_repository.create({"email": access_code_body_1.email})
     cache_adapter.set_with_expiration(
         AccessCodeService._get_access_code_key(user.id), 1, code
     )
-    response = generate_access_token_request(client, access_token_body.dict())
+    response = generate_refresh_token_request(client, access_token_body.dict())
     assert response.status_code == HTTP_201_CREATED
 
 
-def test_generate_access_token_should_return_token(
+def test_generate_refresh_token_should_set_refresh_token_cookie(
     client, cache_adapter, users_repository
 ):
     user = users_repository.create({"email": access_code_body_1.email})
     cache_adapter.set_with_expiration(
         AccessCodeService._get_access_code_key(user.id), 1, code
     )
-    response = generate_access_token_request(client, access_token_body.dict())
+    response = generate_refresh_token_request(client, access_token_body.dict())
+    assert response.cookies.get("refresh_token")
+
+
+def test_generate_refresh_token_should_return_access_token(
+    client, cache_adapter, users_repository
+):
+    user = users_repository.create({"email": access_code_body_1.email})
+    cache_adapter.set_with_expiration(
+        AccessCodeService._get_access_code_key(user.id), 1, code
+    )
+    response = generate_refresh_token_request(client, access_token_body.dict())
     assert AccessToken(**response.json())
 
 
-def test_generate_access_token_should_return_status_404_if_user_not_found(client):
-    response = generate_access_token_request(client, access_token_body.dict())
+def test_generate_refresh_token_should_return_status_404_if_user_not_found(client):
+    response = generate_refresh_token_request(client, access_token_body.dict())
     assert response.status_code == HTTP_404_NOT_FOUND
 
 
-def test_generate_access_token_should_return_status_400_if_code_is_invalid(
+def test_generate_refresh_token_should_return_status_401_if_code_is_invalid(
     client, users_repository
 ):
     users_repository.create({"email": access_code_body_1.email})
-    response = generate_access_token_request(client, access_token_body.dict())
+    response = generate_refresh_token_request(client, access_token_body.dict())
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+@fixture
+def refresh_token(jwt_service, session_service, settings, users_repository):
+    user = users_repository.create({"email": access_code_body_1.email})
+    session_id = session_service.generate_session(user.id)
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, session_id,
+    )
+    return jwt_service.generate_token(refresh_token_payload.dict())
+
+
+def generate_access_token_request(client, refresh_token):
+    headers = {"Cookie": f"refresh_token={refresh_token}"} if refresh_token else {}
+    return client.get("/api/v1/authentication/token", headers=headers,)
+
+
+def test_generate_access_token_should_return_status_200(client, refresh_token):
+    response = generate_access_token_request(client, refresh_token)
+    assert response.status_code == HTTP_200_OK
+
+
+def test_generate_access_token_should_return_access_token(client, refresh_token):
+    response = generate_access_token_request(client, refresh_token)
+    assert AccessToken(**response.json())
+
+
+def test_generate_access_token_should_return_unique_token(client, refresh_token):
+    response_1 = generate_access_token_request(client, refresh_token)
+    token_1 = AccessToken(**response_1.json()).access_token
+    response_2 = generate_access_token_request(client, refresh_token)
+    token_2 = AccessToken(**response_2.json()).access_token
+    assert token_1 != token_2
+
+
+def test_generate_access_token_should_return_status_404_if_user_not_found(
+    client, jwt_service, session_service, settings
+):
+    session_id = session_service.generate_session(123)
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, session_id,
+    )
+    refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
+
+    response = generate_access_token_request(client, refresh_token)
+    assert response.status_code == HTTP_404_NOT_FOUND
+
+
+def test_generate_access_token_should_return_status_401_if_session_is_invalid(
+    client, jwt_service, settings
+):
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, 123,
+    )
+    refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
+
+    response = generate_access_token_request(client, refresh_token)
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def test_generate_access_token_should_return_401_if_token_is_invalid(client):
+    response = generate_access_token_request(client, "invalid.token")
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def test_generate_access_token_should_return_401_if_token_is_missing(client):
+    response = generate_access_token_request(client, None)
     assert response.status_code == HTTP_401_UNAUTHORIZED
