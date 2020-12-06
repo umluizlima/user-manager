@@ -12,7 +12,6 @@ class Environment(str, Enum):
 class Settings(BaseSettings):
     ENV: Environment = Environment.DEVELOPMENT
     SENTRY_DSN: str = None
-    API_KEY: str = "you-will-want-something-safe-here"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/user-manager"
     CACHE_URL: str = "redis://:@localhost:6379/0"
     BROKER_URL: str = "amqp://rabbitmq:rabbitmq@localhost"
@@ -27,7 +26,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
-        fields = {"BROKER_URL": {"env": ["BROKER_URL", "CLOUDAMQP_URL"]}}
+        fields = {
+            "BROKER_URL": {"env": ["BROKER_URL", "CLOUDAMQP_URL"]},
+            "CACHE_URL": {"env": ["CACHE_URL", "REDIS_URL"]},
+        }
 
 
 @lru_cache
