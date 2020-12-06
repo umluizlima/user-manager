@@ -14,7 +14,9 @@ def jwt_service(rsa_keys, settings):
 
 @fixture
 def jwt_payload() -> AccessTokenPayload:
-    return AccessTokenPayload(user_id=123, roles=[], exp=AccessTokenPayload.calc_exp(1))
+    return AccessTokenPayload(
+        user_id=123, roles=[], exp=AccessTokenPayload.calc_exp(1), sid="123456"
+    )
 
 
 @fixture

@@ -5,7 +5,7 @@ from starlette.testclient import TestClient
 
 from app.api import create_api
 from app.api.dependencies import send_code_producer
-from app.core.services import JWTService
+from app.core.services import JWTService, SessionService
 from app.settings import get_settings
 
 mock = MagicMock()
@@ -19,6 +19,11 @@ def send_code_producer_mock():
 @fixture
 def jwt_service(settings_with_rsa):
     return JWTService(settings_with_rsa)
+
+
+@fixture
+def session_service(cache_adapter, settings_with_rsa):
+    return SessionService(settings_with_rsa, cache_adapter)
 
 
 @fixture

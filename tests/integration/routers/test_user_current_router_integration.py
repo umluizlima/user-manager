@@ -21,7 +21,10 @@ def user(users_repository):
 @fixture
 def user_jwt(jwt_service, user):
     jwt_payload = AccessTokenPayload(
-        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
+        user_id=user.id,
+        roles=user.roles,
+        exp=AccessTokenPayload.calc_exp(1),
+        sid="123456",
     )
     return jwt_service.generate_token(jwt_payload.dict())
 
@@ -58,7 +61,7 @@ def test_read_self_should_return_401_for_invalid_jwt(client):
 
 def test_read_self_should_return_404_if_user_does_not_exist(client, jwt_service):
     jwt_payload = AccessTokenPayload(
-        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1), sid="123456"
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = read_self_request(client, jwt)
@@ -106,7 +109,7 @@ def test_update_self_should_return_401_for_invalid_jwt(client):
 
 def test_update_self_should_return_404_if_user_does_not_exist(client, jwt_service):
     jwt_payload = AccessTokenPayload(
-        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1), sid="123456"
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_self_request(client, jwt)
@@ -118,7 +121,10 @@ def test_update_self_should_return_409_if_data_conflicts(
 ):
     users_repository.create(update_payload)
     jwt_payload = AccessTokenPayload(
-        user_id=user.id, roles=user.roles, exp=AccessTokenPayload.calc_exp(1)
+        user_id=user.id,
+        roles=user.roles,
+        exp=AccessTokenPayload.calc_exp(1),
+        sid="123456",
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = update_self_request(client, jwt)
@@ -155,7 +161,7 @@ def test_delete_self_should_return_401_for_invalid_jwt(client):
 
 def test_delete_self_should_return_404_if_user_does_not_exist(client, jwt_service):
     jwt_payload = AccessTokenPayload(
-        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1)
+        user_id=1, roles=[], exp=AccessTokenPayload.calc_exp(1), sid="123456"
     )
     jwt = jwt_service.generate_token(jwt_payload.dict())
     response = delete_self_request(client, jwt)

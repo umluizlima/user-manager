@@ -33,6 +33,13 @@ def find_user_by_id(user_id: int, users_repository: UsersRepository) -> User:
         raise_user_not_found()
 
 
+def find_user_by_email(email: str, users_repository: UsersRepository) -> User:
+    try:
+        return users_repository.find_by_email(email)
+    except ResourceNotFoundError:
+        raise_user_not_found()
+
+
 def update_user_by_id(
     user_id: int, user: Dict, users_repository: UsersRepository
 ) -> User:
