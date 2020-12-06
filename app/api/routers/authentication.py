@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from starlette.status import HTTP_200_OK, HTTP_201_CREATED
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from app.core.models import User
 from app.core.repositories import UsersRepository
@@ -94,6 +94,23 @@ def get_fresh_token(
     )
     token = jwt_service.generate_token(payload.dict())
     return AccessToken(access_token=token)
+
+
+@router.delete("/authentication/token", status_code=HTTP_204_NO_CONTENT)
+def revoke_user_session(
+    response: Response,
+    revoke_all: bool = False,
+    refresh_token: RefreshTokenPayload = Depends(refresh_token),
+    session_service: SessionService = Depends(session_service),
+):
+    user_id = session_service.verify_session(refresh_token.jti)
+    if not user_id:
+        raise_unauthorized("Invalid session")
+    if revoke_all:
+        session_service.revoke_all_sessions(user_id)
+    else:
+        session_service.revoke_session(user_id, refresh_token.jti)
+    response.delete_cookie(key="refresh_token")
 
 
 def configure(app, settings):
