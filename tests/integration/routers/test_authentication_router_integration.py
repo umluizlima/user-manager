@@ -2,6 +2,7 @@ from pytest import fixture
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
@@ -169,4 +170,77 @@ def test_get_fresh_token_should_return_401_if_token_is_invalid(client):
 
 def test_get_fresh_token_should_return_401_if_token_is_missing(client):
     response = get_fresh_token_request(client, None)
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def revoke_user_session_request(client, refresh_token, revoke_all=False):
+    headers = {"Cookie": f"refresh_token={refresh_token}"} if refresh_token else {}
+    return client.delete(
+        "/api/v1/authentication/token",
+        headers=headers,
+        params={"revoke_all": revoke_all},
+    )
+
+
+def test_revoke_user_session_should_return_status_204(client, refresh_token):
+    response = revoke_user_session_request(client, refresh_token)
+    assert response.status_code == HTTP_204_NO_CONTENT
+
+
+def test_revoke_user_session_should_delete_refresh_token_cookie(client, refresh_token):
+    response = revoke_user_session_request(client, refresh_token)
+    assert not response.cookies.get("refresh_token")
+
+
+def test_revoke_user_session_should_revoke_single_session(
+    client, jwt_service, session_service, settings, users_repository
+):
+    user_id = 123
+    session_id = session_service.generate_session(user_id)
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, session_id,
+    )
+    refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
+    session_id_2 = session_service.generate_session(user_id)
+    revoke_user_session_request(client, refresh_token)
+    assert [
+        session_service.verify_session(sid) for sid in [session_id, session_id_2]
+    ] == [None, user_id]
+
+
+def test_revoke_user_session_should_revoke_all_sessions(
+    client, jwt_service, session_service, settings, users_repository
+):
+    user_id = 123
+    session_id = session_service.generate_session(user_id)
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, session_id,
+    )
+    refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
+    session_id_2 = session_service.generate_session(user_id)
+    revoke_user_session_request(client, refresh_token, True)
+    assert [
+        session_service.verify_session(sid) for sid in [session_id, session_id_2]
+    ] == [None, None]
+
+
+def test_revoke_user_session_should_return_status_401_if_session_is_invalid(
+    client, jwt_service, settings
+):
+    refresh_token_payload = RefreshTokenPayload.from_info(
+        settings.SESSION_EXPIRATION_SECONDS, 123,
+    )
+    refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
+
+    response = revoke_user_session_request(client, refresh_token)
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def test_revoke_user_session_should_return_401_if_token_is_invalid(client):
+    response = revoke_user_session_request(client, "invalid.token")
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def test_revoke_user_session_should_return_401_if_token_is_missing(client):
+    response = revoke_user_session_request(client, None)
     assert response.status_code == HTTP_401_UNAUTHORIZED
