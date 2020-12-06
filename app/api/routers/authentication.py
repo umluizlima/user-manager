@@ -31,7 +31,7 @@ router = APIRouter()
 
 
 @router.post("/authentication/code", status_code=HTTP_201_CREATED)
-def generate_access_code(
+def send_access_code(
     body: AccessCodeCreate,
     access_code_service: AccessCodeService = Depends(access_code_service),
     producer: SendCodeProducer = Depends(send_code_producer),
@@ -50,7 +50,7 @@ def generate_access_code(
 @router.post(
     "/authentication/token", response_model=AccessToken, status_code=HTTP_201_CREATED,
 )
-def generate_refresh_token(
+def create_user_session(
     response: Response,
     access_code_user: User = Depends(access_code_user),
     jwt_service: JWTService = Depends(jwt_service),
@@ -78,7 +78,7 @@ def generate_refresh_token(
 @router.get(
     "/authentication/token", response_model=AccessToken, status_code=HTTP_200_OK,
 )
-def generate_access_token(
+def get_fresh_token(
     jwt_service: JWTService = Depends(jwt_service),
     refresh_token: RefreshTokenPayload = Depends(refresh_token),
     session_service: SessionService = Depends(session_service),
