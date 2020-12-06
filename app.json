@@ -1,0 +1,29 @@
+{
+    "name": "user-manager",
+    "repository": "https://github.com/umluizlima/user-manager",
+    "env": {
+        "ENV": {
+            "description": "The environment in which to run the application.",
+            "value": "prod"
+        },
+        "JWT_PRIVATE_KEY": {
+            "description": "Run `openssl genrsa -out private.pem` and paste the resulting text",
+            "value": "your-private-rsa-key"
+        },
+        "JWT_PUBLIC_KEY": {
+            "description": "Run `openssl rsa -in private.pem -pubout -out public.pem` and paste the resulting text",
+            "value": "your-public-rsa-key"
+        }
+    },
+    "addons": [
+        "cloudamqp:lemur",
+        "heroku-redis:hobby-dev",
+        "heroku-postgresql:hobby-dev"
+    ],
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "free"
+        }
+    }
+}
