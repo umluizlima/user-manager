@@ -38,3 +38,5 @@ make db_generate_migration description="your description"
 The `app.json`, `Procfile`, and `runtime.txt` files on this repository are specific for deployment on [Heroku](https://www.heroku.com). It can be done by clicking the following button:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+The CloudAMQP add-on must be shared between this service and [email-sender](https://github.com/umluizlima/email-sender) to ensure that the access code transactional gets sent.
