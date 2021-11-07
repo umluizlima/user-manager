@@ -1,6 +1,6 @@
 alembic==1.4.2
 celery==4.4.6
-cryptography==3.2
+cryptography==3.3.2
 email-validator==1.1.1
 fastapi==0.57.0
 psycopg2-binary==2.8.5
