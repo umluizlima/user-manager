@@ -1,5 +1,13 @@
+.PHONY: environment
+environment:
+	pyenv install -s 3.10.0
+	pyenv uninstall --force user-manager
+	pyenv virtualenv 3.10.0 --force user-manager
+	pyenv local user-manager
+
 .PHONY: install
 install:
+	pip freeze | xargs -r pip uninstall -y && \
 	pip install -r requirements-dev.txt && \
 	pre-commit install
 
