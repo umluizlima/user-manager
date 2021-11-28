@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Response
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -44,11 +46,14 @@ def send_access_code(
             raise error
         user = users_repository.create(UserCreate(email=body.email).dict())
     code = access_code_service.generate_code(user.id)
+    logging.debug(f"Access code {code} generated for user {user.id}")
     producer.send_code(code, user.email)
 
 
 @router.post(
-    "/authentication/token", response_model=AccessToken, status_code=HTTP_201_CREATED,
+    "/authentication/token",
+    response_model=AccessToken,
+    status_code=HTTP_201_CREATED,
 )
 def create_user_session(
     response: Response,
@@ -59,11 +64,14 @@ def create_user_session(
 ):
     session_id = session_service.generate_session(access_code_user.id)
     refresh_token_payload = RefreshTokenPayload.from_info(
-        settings.SESSION_EXPIRATION_SECONDS, session_id,
+        settings.SESSION_EXPIRATION_SECONDS,
+        session_id,
     )
     refresh_token = jwt_service.generate_token(refresh_token_payload.dict())
     access_token_payload = AccessTokenPayload.from_info(
-        settings.ACCESS_TOKEN_EXPIRATION_SECONDS, session_id, access_code_user,
+        settings.ACCESS_TOKEN_EXPIRATION_SECONDS,
+        session_id,
+        access_code_user,
     )
     access_token = jwt_service.generate_token(access_token_payload.dict())
     response.set_cookie(
@@ -76,7 +84,9 @@ def create_user_session(
 
 
 @router.get(
-    "/authentication/token", response_model=AccessToken, status_code=HTTP_200_OK,
+    "/authentication/token",
+    response_model=AccessToken,
+    status_code=HTTP_200_OK,
 )
 def get_fresh_token(
     jwt_service: JWTService = Depends(jwt_service),
@@ -90,7 +100,9 @@ def get_fresh_token(
         raise_unauthorized("Invalid session")
     user = find_user_by_id(user_id, users_repository)
     payload = AccessTokenPayload.from_info(
-        settings.ACCESS_TOKEN_EXPIRATION_SECONDS, refresh_token.jti, user,
+        settings.ACCESS_TOKEN_EXPIRATION_SECONDS,
+        refresh_token.jti,
+        user,
     )
     token = jwt_service.generate_token(payload.dict())
     return AccessToken(access_token=token)
@@ -115,5 +127,7 @@ def revoke_user_session(
 
 def configure(app, settings):
     app.include_router(
-        router, tags=["authentication"], prefix="/api/v1",
+        router,
+        tags=["authentication"],
+        prefix="/api/v1",
     )
