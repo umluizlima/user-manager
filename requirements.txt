@@ -1,5 +1,5 @@
 alembic==1.4.2
-celery==4.4.6
+celery==5.2.2
 cryptography==3.3.2
 email-validator==1.1.1
 fastapi==0.65.2
