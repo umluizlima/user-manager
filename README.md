@@ -10,24 +10,44 @@ A service to manage user information and authentication.
 
 ### Installing
 Install dependencies
-```console
+```bash
 make install
 ```
 
 ### Testing
-```console
+```bash
 make test
 ```
 
 ### Running
-Access the API documentation on http://localhost:8001/docs
-```console
+Run the following commands to create a [private/public key pair](https://cryptotools.net/rsagen). It's required for encoding and decoding the JWT tokens:
+
+```bash
+openssl genrsa -out private.pem
+openssl rsa -in private.pem -pubout -out public.pem
+```
+
+Then, create a `.env` file and place the keys there. It should look like this:
+
+```bash
+JWT_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAK..."
+JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----
+MIIBIjAN..."
+```
+
+After that you should be good to go:
+
+```bash
 make run
 ```
 
+Access the API documentation on http://localhost:8001/docs
+
 ### Migrating
 Generate migration files automatically for changes to models. Make sure all models are imported on `models/__init__.py`
-```console
+
+```bash
 make db_generate_migration description="your description"
 ```
 
