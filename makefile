@@ -7,8 +7,9 @@ environment:
 
 .PHONY: install
 install:
-	pip freeze | xargs -r pip uninstall -y && \
-	pip install -r requirements-dev.txt && \
+	pip freeze | xargs -r pip uninstall -y
+	python -m pip install --upgrade pip
+	pip install -r requirements-dev.txt
 	pre-commit install
 
 .PHONY: db_init
