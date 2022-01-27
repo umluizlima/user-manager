@@ -2,7 +2,7 @@ alembic==1.4.2
 celery==5.2.3
 cryptography==3.3.2
 email-validator==1.1.1
-fastapi==0.65.2
+fastapi==0.73.0
 psycopg2-binary==2.9.2
 PyJWT==1.7.1
 python-dotenv==0.13.0
